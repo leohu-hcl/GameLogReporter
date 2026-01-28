@@ -1,0 +1,134 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace GameLogReporter
+{
+    /// <summary>
+    /// SDK日志管理器 - 仅用于在Unity控制台打印SDK内部日志
+    /// </summary>
+    public class SdkLogger
+    {
+        // SDK日志统一前缀
+        public static string SdkLogPrefix = "[LogReporter SDK]";
+        
+        // SDK内部组件列表（用于过滤）
+        private static readonly HashSet<string> SdkSources = new HashSet<string>
+        {
+            "SDK",
+            "NetworkManager",
+            "HttpClient",
+            "SessionManager",
+            "DeduplicationService",
+            "LogCollector",
+            "LogReporter"
+        };
+        
+        private bool _enableLogging;
+
+        public SdkLogger(bool enableLogging)
+        {
+            _enableLogging = enableLogging;
+        }
+
+        /// <summary>
+        /// 更新配置
+        /// </summary>
+        public void UpdateConfig(bool enableLogging)
+        {
+            _enableLogging = enableLogging;
+        }
+
+        /// <summary>
+        /// 记录信息日志
+        /// </summary>
+        public void Info(string message, string source = "SDK")
+        {
+            Log(message, LogLevel.Info, source);
+        }
+
+        /// <summary>
+        /// 记录警告日志
+        /// </summary>
+        public void Warning(string message, string source = "SDK")
+        {
+            Log(message, LogLevel.Warning, source);
+        }
+
+        /// <summary>
+        /// 记录错误日志
+        /// </summary>
+        public void Error(string message, string source = "SDK")
+        {
+            Log(message, LogLevel.Error, source);
+        }
+
+        /// <summary>
+        /// 记录调试日志
+        /// </summary>
+        public void Debug(string message, string source = "SDK")
+        {
+            Log(message, LogLevel.Debug, source);
+        }
+
+        /// <summary>
+        /// 统一日志记录方法
+        /// </summary>
+        private void Log(string message, LogLevel level, string source)
+        {
+            // 统一使用SDK前缀，source作为组件标识
+            string fullMessage = $"{SdkLogPrefix}[{source}] {message}";
+
+            // 是否打印到Unity控制台
+            if (_enableLogging)
+            {
+                PrintToConsole(fullMessage, level);
+            }
+        }
+
+        /// <summary>
+        /// 打印到Unity控制台
+        /// </summary>
+        private void PrintToConsole(string message, LogLevel level)
+        {
+            switch (level)
+            {
+                case LogLevel.Error:
+                case LogLevel.Critical:
+                    UnityEngine.Debug.LogError(message);
+                    break;
+                case LogLevel.Warning:
+                    UnityEngine.Debug.LogWarning(message);
+                    break;
+                default:
+                    UnityEngine.Debug.Log(message);
+                    break;
+            }
+        }
+
+
+        /// <summary>
+        /// 检查消息是否是SDK日志（用于过滤）
+        /// 使用更健壮的检测方式：检查是否以SDK前缀开头
+        /// </summary>
+        public static bool IsSdkLog(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+                return false;
+
+            // 检查是否以SDK统一前缀开头
+            // 格式: [LogReporter SDK][组件名] 消息
+            return message.StartsWith(SdkLogPrefix);
+        }
+        
+        /// <summary>
+        /// 检查source是否是SDK内部组件
+        /// </summary>
+        public static bool IsSdkSource(string source)
+        {
+            if (string.IsNullOrEmpty(source))
+                return false;
+                
+            return SdkSources.Contains(source);
+        }
+    }
+}
