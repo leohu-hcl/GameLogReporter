@@ -14,6 +14,7 @@ import userRoutes from './routes/users';
 import alertRoutes from './routes/alerts';
 import sessionRoutes from './routes/sessions';
 import deviceRoutes from './routes/devices';
+import configRoutes from './routes/config';
 import { setupWebSocket } from './services/WebSocketService';
 import { startAlertMonitoring } from './services/AlertService';
 import { startRealtimeStatsBroadcast } from './services/StatsService';
@@ -58,6 +59,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/devices', deviceRoutes);
+app.use('/api/config', configRoutes);
 
 // 404处理
 app.use((req, res) => {
