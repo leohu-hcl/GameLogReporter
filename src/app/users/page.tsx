@@ -1,35 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { FilterBar } from '@/components/common/FilterBar';
+import { SearchBar } from '@/components/common/SearchBar';
+import { FilterSelect } from '@/components/common/FilterSelect';
+import { DataTable } from '@/components/common/DataTable';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useUsersList, useDeleteUser } from '@/hooks/useUsersQueries';
 import { DeleteDialog } from '@/components/users/DeleteDialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Trash2, Edit2, Plus, Search } from 'lucide-react';
+import { Trash2, Edit2, Plus, Users } from 'lucide-react';
 import { User } from '@/types';
+import { useSettings } from '@/context/SettingsContext';
 
 /**
  * 用户管理列表页面
  */
 export default function UsersPage() {
   const router = useRouter();
+  const { getPageSize } = useSettings();
+  const pageSize = getPageSize('users');
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
   const [searchInput, setSearchInput] = useState(''); // 临时输入
   const [searchQuery, setSearchQuery] = useState(''); // 提交后的查询
   const [selectedRole, setSelectedRole] = useState<'admin' | 'editor' | 'viewer' | ''>('');
@@ -41,13 +40,17 @@ export default function UsersPage() {
 
   const { data, isLoading, error } = useUsersList(
     page,
-    limit,
+    pageSize,
     searchQuery,
     selectedRole as any || undefined,
     isActive
   );
 
   const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
 
   if (isLoading) {
     return (
@@ -84,12 +87,6 @@ export default function UsersPage() {
     setSearchInput('');
     setSearchQuery('');
     setPage(1);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
   };
 
   const handleRoleFilter = (value: string) => {
@@ -148,183 +145,142 @@ export default function UsersPage() {
   return (
     <ProtectedRoute>
       <Layout>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* 页面标题 */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">用户管理</h1>
-              <p className="text-gray-500 text-sm mt-1">管理系统用户和权限</p>
-            </div>
+          <PageHeader 
+            title="用户管理" 
+            description="管理系统用户和权限"
+          >
             <Button onClick={() => router.push('/users/create')} className="gap-2">
               <Plus className="h-4 w-4" />
               创建用户
             </Button>
-          </div>
+          </PageHeader>
 
-          {/* 过滤和搜索 */}
-          <div className="mb-4 space-y-3 rounded-lg border border-gray-200 bg-white p-3">
-            <div className="flex flex-wrap gap-3">
-              {/* 搜索框 */}
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="搜索用户名或邮箱..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="h-8 w-64"
-                />
-                <Button
-                  onClick={handleSearch}
-                  size="sm"
-                  className="h-8 px-4"
-                >
-                  搜索
-                </Button>
-                {searchQuery && (
-                  <Button
-                    onClick={handleClearSearch}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3"
-                  >
-                    清空筛选
-                  </Button>
-                )}
-              </div>
+          <FilterBar>
+            <SearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={handleSearch}
+              onClear={handleClearSearch}
+              placeholder="搜索用户名或邮箱..."
+              showClearButton={Boolean(searchQuery)}
+            />
+            <FilterSelect
+              label="用户角色"
+              value={selectedRole || 'all'}
+              onChange={(value) => handleRoleFilter(value === 'all' ? '' : value)}
+              options={[
+                { value: 'all', label: '全部角色' },
+                { value: 'admin', label: '管理员' },
+                { value: 'editor', label: '编辑者' },
+                { value: 'viewer', label: '查看者' },
+              ]}
+            />
+            <FilterSelect
+              label="账户状态"
+              value={selectedStatus || 'all'}
+              onChange={(value) => handleStatusFilter(value === 'all' ? '' : value)}
+              options={[
+                { value: 'all', label: '全部状态' },
+                { value: 'active', label: '启用' },
+                { value: 'inactive', label: '禁用' },
+              ]}
+            />
+          </FilterBar>
 
-              {/* 角色过滤 */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">用户角色</label>
-                <Select value={selectedRole || 'all'} onValueChange={(value) => handleRoleFilter(value === 'all' ? '' : value)}>
-                  <SelectTrigger className="h-8 w-32">
-                    <SelectValue placeholder="全部" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部角色</SelectItem>
-                    <SelectItem value="admin">管理员</SelectItem>
-                    <SelectItem value="editor">编辑者</SelectItem>
-                    <SelectItem value="viewer">查看者</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 状态过滤 */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">账户状态</label>
-                <Select value={selectedStatus || 'all'} onValueChange={(value) => handleStatusFilter(value === 'all' ? '' : value)}>
-                  <SelectTrigger className="h-8 w-32">
-                    <SelectValue placeholder="全部" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部状态</SelectItem>
-                    <SelectItem value="active">启用</SelectItem>
-                    <SelectItem value="inactive">禁用</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* 用户列表 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>用户列表</CardTitle>
-              <CardDescription>
-                共 {data.pagination.total} 个用户
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {data.users.length === 0 ? (
-                <div className="flex items-center justify-center min-h-96 text-gray-500">
-                  <div className="text-center">
-                    <p className="text-lg font-medium">没有找到用户</p>
-                    <p className="text-sm">尝试调整搜索条件或创建新用户</p>
+          <DataTable
+            title="用户列表"
+            description={`共 ${data?.pagination?.total || 0} 个用户`}
+            data={data?.users || []}
+            keyExtractor={(user) => user._id}
+            emptyState={
+              <EmptyState
+                icon={Users}
+                title="没有找到用户"
+                description="尝试调整搜索条件或创建新用户"
+              />
+            }
+            columns={[
+              {
+                key: 'username',
+                label: '用户名',
+                render: (user) => (
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {user.username}
+                  </span>
+                ),
+              },
+              {
+                key: 'email',
+                label: '邮箱',
+                render: (user) => (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {user.email}
+                  </span>
+                ),
+              },
+              {
+                key: 'role',
+                label: '角色',
+                render: (user) => getRoleBadge(user.role),
+              },
+              {
+                key: 'status',
+                label: '状态',
+                render: (user) => (
+                  <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                    {user.isActive ? '启用' : '禁用'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'lastLogin',
+                label: '最后登录',
+                render: (user) => (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : '-'}
+                  </span>
+                ),
+              },
+              {
+                key: 'actions',
+                label: '操作',
+                align: 'right',
+                render: (user) => (
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/users/${user._id}`)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(user)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-gray-50">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                          用户名
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                          邮箱
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                          角色
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                          状态
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                          最后登录
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
-                          操作
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.users.map((user) => (
-                        <tr key={user._id} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium">{user.username}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
-                          <td className="px-4 py-3 text-sm">
-                            {getRoleBadge(user.role)}
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <Badge variant={user.isActive ? 'outline' : 'secondary'}>
-                              {user.isActive ? '启用' : '禁用'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {user.lastLogin
-                              ? new Date(user.lastLogin).toLocaleString()
-                              : '-'}
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => router.push(`/users/${user._id}`)}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDelete(user)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                ),
+              },
+            ]}
+          />
 
-              {/* 分页 */}
-              {data.pagination.totalPages > 1 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    totalPages={data.pagination.totalPages}
-                    total={data.pagination.total}
-                    limit={limit}
-                    onPageChange={setPage}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {(data?.pagination?.totalPages || 0) > 1 && (
+            <div className="mt-2">
+              <Pagination
+                currentPage={page}
+                totalPages={data?.pagination?.totalPages || 1}
+                total={data?.pagination?.total || 0}
+                limit={pageSize}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
 
           {/* 删除确认对话框 */}
           <DeleteDialog

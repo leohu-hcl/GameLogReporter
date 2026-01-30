@@ -2,21 +2,62 @@
 
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { EmptyState } from '@/components/common/EmptyState';
+import { Shield } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SystemSettings } from '@/components/settings/SystemSettings';
+import { ThemeSettings } from '@/components/settings/ThemeSettings';
+import { GeneralSettings } from '@/components/settings/GeneralSettings';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * 系统设置页面
  */
 export default function SettingsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold">设置</h1>
+          <PageHeader title="设置" description="管理系统配置和偏好设置" />
 
-          {/* 临时内容 */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-muted-foreground">系统设置组件开发中...</p>
-          </div>
+          <Tabs defaultValue={isAdmin ? 'system' : 'general'} className="w-full">
+            <TabsList>
+              {isAdmin && <TabsTrigger value="system">系统设置</TabsTrigger>}
+              <TabsTrigger value="general">通用设置</TabsTrigger>
+              <TabsTrigger value="appearance">外观</TabsTrigger>
+              <TabsTrigger value="security">安全设置</TabsTrigger>
+            </TabsList>
+
+            {/* 系统设置 - 仅管理员 */}
+            {isAdmin && (
+              <TabsContent value="system" className="mt-6">
+                <SystemSettings />
+              </TabsContent>
+            )}
+
+            {/* 通用设置 */}
+            <TabsContent value="general" className="mt-6">
+              <GeneralSettings />
+            </TabsContent>
+
+            {/* 外观设置 */}
+            <TabsContent value="appearance" className="mt-6">
+              <ThemeSettings />
+            </TabsContent>
+
+            {/* 安全设置 */}
+            <TabsContent value="security" className="mt-6">
+              <EmptyState
+                icon={Shield}
+                title="安全设置功能开发中..."
+                description="即将提供更多安全相关配置"
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </Layout>
     </ProtectedRoute>

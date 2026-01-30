@@ -1,9 +1,13 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { InfoCard } from '@/components/common/InfoCard';
+import { DataTable } from '@/components/common/DataTable';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useSessionWithLogs } from '@/hooks/useSessionQueries';
 import { sessionService } from '@/api/sessions';
@@ -13,22 +17,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ChevronLeft, Copy, Download, ExternalLink } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ChevronLeft, Copy, Download, ExternalLink, FileText } from 'lucide-react';
 import { LogDownloadDialog } from '@/components/logs/LogDownloadDialog';
+import { useSettings } from '@/context/SettingsContext';
 
 /**
  * 会话详情页面
@@ -37,13 +28,18 @@ export default function SessionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const sessionId = params.sessionId as string;
+  const { getPageSize } = useSettings();
+  const pageSize = getPageSize('sessionLogs');
 
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
 
-  const { data, isLoading, error } = useSessionWithLogs(sessionId, page, limit);
+  const { data, isLoading, error } = useSessionWithLogs(sessionId, page, pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
 
   const handleCopyId = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -252,31 +248,29 @@ export default function SessionDetailPage() {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          {/* 返回按钮 */}
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="gap-2"
+          <PageHeader
+            title="会话详情"
+            description={`${new Date(session.startTime).toLocaleString('zh-CN')}`}
           >
-            <ChevronLeft className="h-4 w-4" />
-            返回
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              返回
+            </Button>
+          </PageHeader>
 
-          {/* 会话基本信息 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>会话信息</CardTitle>
-              <CardDescription>
-                {new Date(session.startTime).toLocaleString('zh-CN')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                {/* 会话ID */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">会话ID</p>
+          <InfoCard
+            title="会话信息"
+            columns={3}
+            items={[
+              {
+                label: '会话ID',
+                value: (
                   <div className="flex items-center gap-2">
-                    <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded break-all">
+                    <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded break-all">
                       {session.sessionId}
                     </code>
                     <Button
@@ -292,13 +286,13 @@ export default function SessionDetailPage() {
                       />
                     </Button>
                   </div>
-                </div>
-
-                {/* 设备ID */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">设备ID</p>
+                ),
+              },
+              {
+                label: '设备ID',
+                value: (
                   <div className="flex items-center gap-2">
-                    <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded truncate">
+                    <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate">
                       {session.deviceId}
                     </code>
                     <Button
@@ -314,185 +308,144 @@ export default function SessionDetailPage() {
                       />
                     </Button>
                   </div>
-                </div>
-
-                {/* 状态 */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">会话状态</p>
-                  <Badge
-                    variant={session.status === 'active' ? 'default' : 'secondary'}
-                  >
+                ),
+              },
+              {
+                label: '会话状态',
+                value: (
+                  <Badge variant={session.status === 'active' ? 'default' : 'secondary'}>
                     {session.status === 'active' ? '进行中' : '已结束'}
                   </Badge>
-                </div>
-              </div>
+                ),
+              },
+            ]}
+          />
 
-              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-                {/* 开始时间 */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">开始时间</p>
-                  <p className="text-sm font-medium">
-                    {new Date(session.startTime).toLocaleString('zh-CN')}
-                  </p>
-                </div>
+          <InfoCard
+            columns={4}
+            items={[
+              { label: '开始时间', value: new Date(session.startTime).toLocaleString('zh-CN') },
+              {
+                label: '结束时间',
+                value: session.endTime
+                  ? new Date(session.endTime).toLocaleString('zh-CN')
+                  : '进行中...',
+              },
+              {
+                label: '会话时长',
+                value: sessionDuration
+                  ? `${Math.floor(sessionDuration / 60)}分${sessionDuration % 60}秒`
+                  : '进行中...',
+              },
+              { label: '日志数量', value: `${pagination.total} 条` },
+            ]}
+          />
 
-                {/* 结束时间 */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">结束时间</p>
-                  <p className="text-sm font-medium">
-                    {session.endTime
-                      ? new Date(session.endTime).toLocaleString('zh-CN')
-                      : '进行中...'}
-                  </p>
-                </div>
-
-                {/* 会话时长 */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">会话时长</p>
-                  <p className="text-sm font-medium">
-                    {sessionDuration
-                      ? `${Math.floor(sessionDuration / 60)}分${sessionDuration % 60}秒`
-                      : '进行中...'}
-                  </p>
-                </div>
-
-                {/* 日志数量 */}
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">日志数量</p>
-                  <p className="text-sm font-medium">{pagination.total} 条</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 设备信息 */}
           {device && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">设备信息</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">设备型号</p>
-                    <p className="text-sm font-medium">{device.deviceModel}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">平台</p>
-                    <p className="text-sm font-medium">{device.platform}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">OS版本</p>
-                    <p className="text-sm font-medium">{device.osVersion || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Unity版本</p>
-                    <p className="text-sm font-medium">{device.unityVersion || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">首次连接</p>
-                    <p className="text-xs font-medium">
-                      {new Date(device.firstSeen).toLocaleString('zh-CN')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">最后连接</p>
-                    <p className="text-xs font-medium">
-                      {new Date(device.lastSeen).toLocaleString('zh-CN')}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <InfoCard
+              title="设备信息"
+              columns={3}
+              items={[
+                { label: '设备型号', value: device.deviceModel },
+                { label: '平台', value: device.platform },
+                { label: 'OS版本', value: device.osVersion || '-' },
+                { label: 'Unity版本', value: device.unityVersion || '-' },
+                { label: '首次连接', value: new Date(device.firstSeen).toLocaleString('zh-CN') },
+                { label: '最后连接', value: new Date(device.lastSeen).toLocaleString('zh-CN') },
+              ]}
+            />
           )}
 
-          {/* 日志列表 */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>会话日志</CardTitle>
-                  <CardDescription>
-                    共 {pagination.total} 条，第 {page} / {pagination.totalPages} 页
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2">
+          <DataTable
+            title="会话日志"
+            description={`共 ${pagination.total} 条，第 ${page} / ${pagination.totalPages} 页`}
+            data={logs}
+            keyExtractor={(log) => log.logId}
+            actions={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDownloadDialogOpen(true)}
+                disabled={!data?.logs || data.logs.length === 0}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                下载
+              </Button>
+            }
+            emptyState={
+              <EmptyState
+                icon={FileText}
+                title="暂无日志"
+                description="该会话还没有记录任何日志"
+              />
+            }
+            columns={[
+              {
+                key: 'createdAt',
+                label: '时间',
+                render: (log) => (
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    {new Date(log.createdAt).toLocaleString('zh-CN')}
+                  </span>
+                ),
+              },
+              {
+                key: 'logType',
+                label: '类型',
+                render: (log) => (
+                  <Badge variant="outline">
+                    {LOG_TYPE_LABELS[log.logType] || log.logType}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'level',
+                label: '级别',
+                render: (log) => (
+                  <Badge className={LOG_LEVEL_COLORS[log.level] || 'bg-gray-100'}>
+                    {LOG_LEVEL_LABELS[log.level] || log.level}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'message',
+                label: '消息',
+                render: (log) => (
+                  <span className="text-sm text-gray-900 dark:text-gray-100 line-clamp-1">
+                    {log.message}
+                  </span>
+                ),
+              },
+              {
+                key: 'actions',
+                label: '操作',
+                align: 'center',
+                render: (log) => (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => setDownloadDialogOpen(true)}
-                    disabled={!data?.logs || data.logs.length === 0}
-                    className="gap-2"
+                    onClick={() => router.push(`/logs/${log._id}`)}
+                    title="查看详情"
                   >
-                    <Download className="h-4 w-4" />
-                    下载
+                    <ExternalLink className="h-4 w-4" />
                   </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {logs.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">暂无日志</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b">
-                      <tr>
-                        <th className="px-4 py-2 text-left font-medium">时间</th>
-                        <th className="px-4 py-2 text-left font-medium">类型</th>
-                        <th className="px-4 py-2 text-left font-medium">级别</th>
-                        <th className="px-4 py-2 text-left font-medium">消息</th>
-                        <th className="px-4 py-2 text-center font-medium">操作</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {logs.map((log) => (
-                        <tr key={log.logId} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-2 text-xs">
-                            {new Date(log.createdAt).toLocaleString('zh-CN')}
-                          </td>
-                          <td className="px-4 py-2">
-                            <Badge variant="outline">
-                              {LOG_TYPE_LABELS[log.logType] || log.logType}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-2">
-                            <Badge className={LOG_LEVEL_COLORS[log.level] || 'bg-gray-100'}>
-                              {LOG_LEVEL_LABELS[log.level] || log.level}
-                            </Badge>
-                          </td>
-                          <td className="max-w-xs truncate px-4 py-2 text-sm">
-                            {log.message}
-                          </td>
-                          <td className="px-4 py-2 text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/logs/${log._id}`)}
-                              title="查看详情"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                ),
+              },
+            ]}
+          />
 
-              {/* 分页 */}
-              <div className="mt-4">
-                <Pagination
-                  currentPage={page}
-                  totalPages={pagination.totalPages}
-                  total={pagination.total}
-                  limit={limit}
-                  onPageChange={setPage}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {pagination.totalPages > 1 && (
+            <div className="mt-2">
+              <Pagination
+                currentPage={page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                limit={pageSize}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
 
           {/* 下载选项弹窗 */}
           <LogDownloadDialog

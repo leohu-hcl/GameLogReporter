@@ -63,27 +63,27 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl">登录</CardTitle>
-        <CardDescription>输入您的凭证以继续</CardDescription>
+        <CardTitle className="text-2xl">欢迎回来</CardTitle>
+        <CardDescription>登录到 GameLogReporter</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="destructive" className="bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800">
+              <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
             </Alert>
           )}
 
           {/* 演示提示 */}
-          <Alert className="bg-blue-50 border-blue-200 text-blue-900">
-            <AlertDescription className="text-sm">
-              📝 <strong>演示账号：</strong><br />
+          <Alert className="border-blue-200 dark:border-blue-800">
+            <AlertDescription className="text-sm text-blue-900 dark:text-blue-300">
+              <strong>演示账号：</strong><br />
               邮箱: admin@gamelog.com | 密码: Admin@123456
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
+            <label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               邮箱或用户名
             </label>
             <Input
@@ -95,11 +95,12 @@ export function LoginForm() {
               onChange={handleChange}
               disabled={loading}
               required
+              className="h-11 border-gray-300 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:focus:border-blue-400"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
+            <label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               密码
             </label>
             <Input
@@ -111,6 +112,7 @@ export function LoginForm() {
               onChange={handleChange}
               disabled={loading}
               required
+              className="h-11 border-gray-300 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:focus:border-blue-400"
             />
           </div>
 
@@ -122,24 +124,24 @@ export function LoginForm() {
               onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: !!checked }))}
               disabled={loading}
             />
-            <label htmlFor="rememberMe" className="text-sm font-medium cursor-pointer">
+            <label htmlFor="rememberMe" className="text-sm font-medium cursor-pointer text-gray-700 dark:text-gray-300">
               记住我
             </label>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button type="submit" disabled={loading} className="w-full h-11">
             {loading ? '登录中...' : '登录'}
           </Button>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             还没有账户？{' '}
-            <Link href="/auth/register" className="text-primary hover:underline">
+            <Link href="/auth/register" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
               注册
             </Link>
           </div>
 
           <div className="text-center text-sm">
-            <Link href="/auth/reset-password" className="text-primary hover:underline">
+            <Link href="/auth/reset-password" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
               忘记密码？
             </Link>
           </div>

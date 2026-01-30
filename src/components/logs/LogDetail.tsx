@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { PageHeader } from '@/components/common/PageHeader';
+import { InfoCard } from '@/components/common/InfoCard';
 import { ArrowLeft, Copy, Download, ChevronLeft } from 'lucide-react';
+import { LOG_LEVEL_LABELS, LOG_TYPE_LABELS } from '@/components/logs/LogsTable';
 
 interface LogDetailProps {
   logId: string;
@@ -63,15 +66,15 @@ export function LogDetail({ logId }: LogDetailProps) {
         </Button>
 
         <div className="flex items-center justify-center min-h-96">
-          <Card className="w-full max-w-md border-red-200 bg-red-50">
+          <Card className="w-full max-w-md border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
             <CardHeader>
-              <CardTitle className="text-red-800">日志不存在</CardTitle>
-              <CardDescription className="text-red-600">
+              <CardTitle className="text-red-800 dark:text-red-400">日志不存在</CardTitle>
+              <CardDescription className="text-red-600 dark:text-red-400">
                 {error || '您要查看的日志已不存在或已被删除'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded bg-red-100 p-3 text-sm text-red-700">
+              <div className="rounded bg-red-100 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-400">
                 <p className="font-medium mb-1">可能的原因：</p>
                 <ul className="list-inside list-disc space-y-1 text-xs">
                   <li>日志ID 输入错误</li>
@@ -155,97 +158,86 @@ export function LogDetail({ logId }: LogDetailProps) {
 
   return (
     <div className="space-y-6">
-      {/* 返回按钮和操作栏 */}
-      <div className="flex items-center justify-between">
+      <PageHeader
+        title="日志详情"
+        description={new Date(log.timestamp).toLocaleString()}
+      >
         <Button
           variant="outline"
           onClick={() => router.back()}
+          className="gap-2"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4" />
           返回日志列表
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => copyToClipboard(JSON.stringify(log, null, 2))}
+        >
+          <Copy className="w-4 h-4 mr-2" />
+          {copied ? '已复制' : '复制'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={downloadLog}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          下载
+        </Button>
+      </PageHeader>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => copyToClipboard(JSON.stringify(log, null, 2))}
-          >
-            <Copy className="w-4 h-4 mr-2" />
-            {copied ? '已复制' : '复制'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={downloadLog}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            下载
-          </Button>
-        </div>
-      </div>
-
-      {/* 基础信息 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>日志详情</span>
+            <span>日志信息</span>
             <div className="flex gap-2">
               <Badge className={getTypeColor(log.logType)}>
-                {log.logType}
+                {LOG_TYPE_LABELS[log.logType] || log.logType}
               </Badge>
               <Badge className={getLevelColor(log.level)}>
-                {log.level}
+                {LOG_LEVEL_LABELS[log.level] || log.level}
               </Badge>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 日志 ID 和消息 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">日志 ID</h3>
-              <p className="text-sm font-mono text-gray-900 break-all">{log.logId}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">会话 ID</h3>
-              <p className="text-sm font-mono text-gray-900 break-all">{log.sessionId}</p>
-            </div>
-          </div>
+          <InfoCard
+            columns={2}
+            items={[
+              {
+                label: '日志 ID',
+                value: <span className="font-mono text-sm break-all">{log.logId}</span>,
+              },
+              {
+                label: '会话 ID',
+                value: <span className="font-mono text-sm break-all">{log.sessionId}</span>,
+              },
+              {
+                label: '发生时间',
+                value: new Date(log.timestamp).toLocaleString(),
+              },
+              {
+                label: '创建时间',
+                value: new Date(log.createdAt).toLocaleString(),
+              },
+            ]}
+          />
 
-          {/* 消息 */}
           <div>
-            <h3 className="text-sm font-medium text-gray-500">消息</h3>
-            <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded break-all">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">消息</h3>
+            <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 p-3 rounded break-all">
               {log.message}
             </p>
           </div>
 
-          {/* 时间戳 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {log.clientVersion && (
             <div>
-              <h3 className="text-sm font-medium text-gray-500">发生时间</h3>
-              <p className="text-sm text-gray-900">
-                {new Date(log.timestamp).toLocaleString()}
-              </p>
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">客户端版本</h3>
+              <p className="text-sm text-gray-900 dark:text-gray-100">{log.clientVersion}</p>
             </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">创建时间</h3>
-              <p className="text-sm text-gray-900">
-                {new Date(log.createdAt).toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* 额外信息 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {log.clientVersion && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">客户端版本</h3>
-                <p className="text-sm text-gray-900">{log.clientVersion}</p>
-              </div>
-            )}
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -274,7 +266,7 @@ export function LogDetail({ logId }: LogDetailProps) {
             <CardTitle>堆栈跟踪</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-gray-50 p-4 rounded overflow-x-auto text-xs text-gray-900">
+            <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-x-auto text-xs text-gray-900 dark:text-gray-100">
               {log.stackTrace}
             </pre>
           </CardContent>
@@ -288,7 +280,7 @@ export function LogDetail({ logId }: LogDetailProps) {
             <CardTitle>元数据</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-gray-50 p-4 rounded overflow-x-auto text-xs text-gray-900">
+            <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-x-auto text-xs text-gray-900 dark:text-gray-100">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
           </CardContent>

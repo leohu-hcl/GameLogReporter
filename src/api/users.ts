@@ -13,16 +13,13 @@ export interface UserListParams {
   isActive?: boolean;
 }
 
-export interface UserListResponse {
-  success: boolean;
-  data: {
-    users: User[];
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
+export interface UserListResponseData {
+  users: User[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
   };
 }
 
@@ -50,7 +47,7 @@ export const userService = {
     searchQuery?: string,
     role?: 'admin' | 'editor' | 'viewer',
     isActive?: boolean
-  ): Promise<UserListResponse['data']> => {
+  ): Promise<UserListResponseData> => {
     const params = new URLSearchParams();
     params.append('page', String(page));
     params.append('limit', String(limit));
@@ -65,21 +62,13 @@ export const userService = {
       params.append('isActive', String(isActive));
     }
 
-    const response = await apiClient.get<UserListResponse>(
-      `/users?${params.toString()}`
-    );
+    const response = await apiClient.get<{
+      success: boolean;
+      data: UserListResponseData;
+    }>(`/users?${params.toString()}`);
     
-    // 转换响应格式：从扁平结构到嵌套结构
-    const { users, total, page: p, limit: l, totalPages } = response.data;
-    return {
-      users,
-      pagination: {
-        total,
-        page: p,
-        limit: l,
-        totalPages
-      }
-    };
+    // 响应拦截器返回 response.data，所以这里直接解构 data 字段
+    return response.data;
   },
 
   /**

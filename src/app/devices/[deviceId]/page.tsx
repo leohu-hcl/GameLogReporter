@@ -1,9 +1,14 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { InfoCard } from '@/components/common/InfoCard';
+import { StatCard } from '@/components/common/StatCard';
+import { DataTable } from '@/components/common/DataTable';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useDeviceWithSessions } from '@/hooks/useDeviceQueries';
 import { Button } from '@/components/ui/button';
@@ -11,14 +16,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ChevronLeft, ExternalLink, Download } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ChevronLeft, ExternalLink, Download, Smartphone, Activity, BarChart3, FileText } from 'lucide-react';
+import { useSettings } from '@/context/SettingsContext';
 
 /**
  * 设备详情页面
@@ -27,11 +26,16 @@ export default function DeviceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const deviceId = params.deviceId as string;
+  const { getPageSize } = useSettings();
+  const pageSize = getPageSize('deviceSessions');
 
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
 
-  const { data, isLoading, error } = useDeviceWithSessions(deviceId, page, limit);
+  const { data, isLoading, error } = useDeviceWithSessions(deviceId, page, pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
 
   const handleDownloadSessions = () => {
     if (!data?.sessions) return;
@@ -136,194 +140,180 @@ export default function DeviceDetailPage() {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          {/* 返回按钮 */}
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="gap-2"
+          <PageHeader
+            title={device.deviceModel}
+            description={`${new Date(device.firstSeen).toLocaleString('zh-CN')} 首次连接`}
           >
-            <ChevronLeft className="h-4 w-4" />
-            返回
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              返回
+            </Button>
+          </PageHeader>
 
-          {/* 设备基本信息 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{device.deviceModel}</CardTitle>
-              <CardDescription>
-                {new Date(device.firstSeen).toLocaleString('zh-CN')} 首次连接
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">设备ID</p>
-                  <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded break-all">
+          <InfoCard
+            title="设备信息"
+            columns={3}
+            items={[
+              {
+                label: '设备ID',
+                value: (
+                  <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded break-all">
                     {device.deviceId}
                   </code>
-                </div>
+                ),
+              },
+              {
+                label: '平台',
+                value: <Badge variant="outline">{device.platform}</Badge>,
+              },
+              {
+                label: '活跃状态',
+                value: device.isActive ? (
+                  <Badge variant="default">活跃</Badge>
+                ) : (
+                  <Badge variant="secondary">离线</Badge>
+                ),
+              },
+            ]}
+          />
 
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">平台</p>
-                  <Badge variant="outline">{device.platform}</Badge>
-                </div>
+          <InfoCard
+            columns={4}
+            items={[
+              { label: 'OS版本', value: device.osVersion || '-' },
+              { label: 'Unity版本', value: device.unityVersion || '-' },
+              { label: '首次连接', value: new Date(device.firstSeen).toLocaleString('zh-CN') },
+              { label: '最后连接', value: new Date(device.lastSeen).toLocaleString('zh-CN') },
+            ]}
+          />
 
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">活跃状态</p>
-                  {device.isActive ? (
-                    <Badge variant="default" className="bg-green-600">
-                      活跃
-                    </Badge>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <StatCard
+              title="运行天数"
+              value={uptimeDays}
+              icon={Activity}
+              iconColor="text-blue-600"
+              description="天"
+            />
+            <StatCard
+              title="会话总数"
+              value={pagination.total}
+              icon={BarChart3}
+              iconColor="text-purple-600"
+            />
+            <StatCard
+              title="总日志数"
+              value={sessions.reduce((sum, s) => sum + (s.logCount || 0), 0)}
+              icon={FileText}
+              iconColor="text-amber-600"
+            />
+          </div>
+
+          <DataTable
+            title="设备会话"
+            description={`共 ${pagination.total} 个会话，第 ${page} / ${pagination.totalPages} 页`}
+            data={sessions}
+            keyExtractor={(session) => session.sessionId}
+            actions={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadSessions}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                下载
+              </Button>
+            }
+            emptyState={
+              <EmptyState
+                icon={Smartphone}
+                title="暂无会话"
+                description="该设备还没有任何会话记录"
+              />
+            }
+            columns={[
+              {
+                key: 'sessionId',
+                label: '会话ID',
+                render: (session) => (
+                  <button
+                    className="text-blue-600 dark:text-blue-400 hover:underline font-mono text-xs"
+                    onClick={() => router.push(`/sessions/${session.sessionId}`)}
+                    title="查看会话详情"
+                  >
+                    {session.sessionId?.substring(0, 16)}...
+                  </button>
+                ),
+              },
+              {
+                key: 'startTime',
+                label: '开始时间',
+                render: (session) => (
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    {new Date(session.startTime).toLocaleString('zh-CN')}
+                  </span>
+                ),
+              },
+              {
+                key: 'status',
+                label: '状态',
+                render: (session) => (
+                  <Badge variant={session.status === 'active' ? 'default' : 'secondary'}>
+                    {session.status === 'active' ? '进行中' : '已结束'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'logCount',
+                label: '日志数',
+                align: 'center',
+                render: (session) => session.logCount || 0,
+              },
+              {
+                key: 'errorCount',
+                label: '错误数',
+                align: 'center',
+                render: (session) =>
+                  session.errorCount && session.errorCount > 0 ? (
+                    <Badge variant="destructive">{session.errorCount}</Badge>
                   ) : (
-                    <Badge variant="secondary">离线</Badge>
-                  )}
-                </div>
-              </div>
+                    <span className="text-gray-400">0</span>
+                  ),
+              },
+              {
+                key: 'actions',
+                label: '操作',
+                align: 'center',
+                render: (session) => (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push(`/sessions/${session.sessionId}`)}
+                    title="查看会话详情"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                ),
+              },
+            ]}
+          />
 
-              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">OS版本</p>
-                  <p className="text-sm font-medium">{device.osVersion || '-'}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">Unity版本</p>
-                  <p className="text-sm font-medium">{device.unityVersion || '-'}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">首次连接</p>
-                  <p className="text-xs font-medium">
-                    {new Date(device.firstSeen).toLocaleString('zh-CN')}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">最后连接</p>
-                  <p className="text-xs font-medium">
-                    {new Date(device.lastSeen).toLocaleString('zh-CN')}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">运行天数</p>
-                  <p className="text-2xl font-bold text-blue-600">{uptimeDays}</p>
-                  <p className="text-xs text-gray-500 mt-1">天</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">会话总数</p>
-                  <p className="text-2xl font-bold text-purple-600">{pagination.total}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-500 mb-2">总日志数</p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {sessions.reduce((sum, s) => sum + (s.logCount || 0), 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 会话列表 */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>设备会话</CardTitle>
-                  <CardDescription>
-                    共 {pagination.total} 个会话，第 {page} / {pagination.totalPages} 页
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownloadSessions}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  下载
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {sessions.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">暂无会话</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="border-b">
-                      <tr>
-                        <th className="px-4 py-2 text-left font-medium">会话ID</th>
-                        <th className="px-4 py-2 text-left font-medium">开始时间</th>
-                        <th className="px-4 py-2 text-left font-medium">状态</th>
-                        <th className="px-4 py-2 text-center font-medium">日志数</th>
-                        <th className="px-4 py-2 text-center font-medium">错误数</th>
-                        <th className="px-4 py-2 text-center font-medium">操作</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sessions.map((session) => (
-                        <tr key={session.sessionId} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-2 text-xs font-mono">
-                            <button
-                              className="text-blue-600 hover:underline"
-                              onClick={() => router.push(`/sessions/${session.sessionId}`)}
-                              title="查看会话详情"
-                            >
-                              {session.sessionId?.substring(0, 16)}...
-                            </button>
-                          </td>
-                          <td className="px-4 py-2 text-xs">
-                            {new Date(session.startTime).toLocaleString('zh-CN')}
-                          </td>
-                          <td className="px-4 py-2">
-                            <Badge
-                              variant={session.status === 'active' ? 'default' : 'secondary'}
-                            >
-                              {session.status === 'active' ? '进行中' : '已结束'}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-2 text-center">{session.logCount || 0}</td>
-                          <td className="px-4 py-2 text-center">
-                            {session.errorCount && session.errorCount > 0 ? (
-                              <Badge variant="destructive">{session.errorCount}</Badge>
-                            ) : (
-                              <span className="text-gray-400">0</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2 text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/sessions/${session.sessionId}`)}
-                              title="查看会话详情"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* 分页 */}
-              <div className="mt-4">
-                <Pagination
-                  currentPage={page}
-                  totalPages={pagination.totalPages}
-                  total={pagination.total}
-                  limit={limit}
-                  onPageChange={setPage}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {pagination.totalPages > 1 && (
+            <div className="mt-2">
+              <Pagination
+                currentPage={page}
+                totalPages={pagination.totalPages}
+                total={pagination.total}
+                limit={pageSize}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
         </div>
       </Layout>
     </ProtectedRoute>

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { UserForm } from '@/components/users/UserForm';
 import { useCreateUser } from '@/hooks/useUsersQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,17 +44,12 @@ export default function CreateUserPage() {
     <ProtectedRoute>
       <Layout>
         <div className="max-w-2xl mx-auto space-y-4">
-          {/* 返回按钮 */}
-          <Button variant="outline" onClick={() => router.back()} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            返回
-          </Button>
-
-          {/* 标题 */}
-          <div>
-            <h1 className="text-3xl font-bold">创建新用户</h1>
-            <p className="text-gray-500 text-sm mt-1">添加新用户到系统中</p>
-          </div>
+          <PageHeader title="创建新用户" description="添加新用户到系统中">
+            <Button variant="outline" onClick={() => router.back()} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              返回
+            </Button>
+          </PageHeader>
 
           {/* 错误提示 */}
           {mutationError && (

@@ -154,7 +154,7 @@ export function LogDownloadDialog({
           </div>
 
           {/* 预览信息 */}
-          <div className="rounded bg-blue-50 p-3 text-xs text-blue-700">
+          <div className="rounded bg-blue-50 dark:bg-blue-900/20 p-3 text-xs text-blue-700 dark:text-blue-400">
             <p className="font-medium mb-1">📊 导出信息</p>
             <p>• 格式：{exportFormat === 'json' ? 'JSON' : '纯文本'}</p>
             <p>• 排序：{sortOrder === 'asc' ? '升序' : '降序'}</p>

@@ -3,6 +3,7 @@
 import { useRouter, useParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { UserForm } from '@/components/users/UserForm';
 import { useUserById, useUpdateUser } from '@/hooks/useUsersQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,18 +78,11 @@ export default function EditUserPage() {
   return (
     <ProtectedRoute>
       <Layout>
-        <div className="max-w-2xl mx-auto space-y-4">
-          {/* 返回按钮 */}
-          <Button variant="outline" onClick={() => router.back()} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            返回
-          </Button>
-
-          {/* 标题 */}
-          <div>
-            <h1 className="text-3xl font-bold">编辑用户</h1>
-            <p className="text-gray-500 text-sm mt-1">修改用户信息和权限</p>
-          </div>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <PageHeader 
+            title="编辑用户" 
+            description="修改用户信息和权限"
+          />
 
           {/* 错误提示 */}
           {mutationError && (

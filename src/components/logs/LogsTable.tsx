@@ -12,7 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ChevronLeft, ChevronRight, Eye, RefreshCw, Copy, Filter, X, Download, Calendar } from 'lucide-react';
+import { Pagination } from '@/components/common/Pagination';
+import { EmptyState } from '@/components/common/EmptyState';
+import { Eye, RefreshCw, Copy, Filter, X, Download, Calendar, FileText } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { LogDownloadDialog } from '@/components/logs/LogDownloadDialog';
 import { format } from 'date-fns';
+import { useSettings } from '@/context/SettingsContext';
 
 interface LogTableProps {
   initialFilters?: LogFilters;
@@ -59,6 +62,8 @@ export const LOG_TYPE_COLORS: Record<string, string> = {
 
 export function LogsTable({ initialFilters }: LogTableProps) {
   const router = useRouter();
+  const { getPageSize } = useSettings();
+  const pageSize = getPageSize('logs');
   
   // 默认最近7天
   const getDefaultDateRange = () => {
@@ -82,7 +87,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
 
   const [filters, setFilters] = useState<LogFilters>({
     page: 1,
-    limit: 20,
+    limit: pageSize,
     ...initialFilters,
     ...(defaultRange ? { startTime: defaultRange.startTime, endTime: defaultRange.endTime } : {}),
   });
@@ -106,6 +111,14 @@ export function LogsTable({ initialFilters }: LogTableProps) {
   const [quickRangeType, setQuickRangeType] = useState<'today' | 'yesterday' | 'week' | 'month' | null>(null);
 
   const { data, isLoading, error, refetch } = useLogsList(filters);
+
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      page: 1,
+      limit: pageSize,
+    }));
+  }, [pageSize]);
 
   // 自动隐藏复制反馈
   useEffect(() => {
@@ -142,7 +155,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
   const handleClearFilters = () => {
     setFilters({
       page: 1,
-      limit: 20,
+      limit: pageSize,
     });
     setSearch('');
     setStartDate('');
@@ -374,7 +387,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* 工具栏 */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -383,6 +396,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             size="sm"
             onClick={() => refetch()}
             disabled={isLoading}
+            className="shadow-sm hover:shadow-md transition-all"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             刷新
@@ -391,6 +405,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             variant={showFilters ? 'default' : 'outline'}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
+            className="shadow-sm hover:shadow-md transition-all"
           >
             <Filter className="h-4 w-4" />
             筛选
@@ -400,40 +415,41 @@ export function LogsTable({ initialFilters }: LogTableProps) {
               variant="outline"
               size="sm"
               onClick={handleClearFilters}
+              className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30 shadow-sm hover:shadow-md transition-all"
             >
               <X className="h-4 w-4" />
               清空
             </Button>
           )}
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
           共 {data?.total || 0} 条 • 页码 {data?.page || 1}/{data?.totalPages || 1}
         </div>
       </div>
 
       {/* 可折叠的筛选面板 */}
       {showFilters && (
-        <div className="mb-4 space-y-3 rounded-lg border border-gray-200 bg-white p-3">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 space-y-4">
           {/* 第一行：搜索、类型、级别 */}
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">搜索消息</label>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">搜索消息</label>
               <Input
                 placeholder="关键字..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="h-8 w-64"
+                className="h-9 w-64 shadow-sm"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">日志类型</label>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">日志类型</label>
               <Select
                 value={filters.logType || 'all'}
                 onValueChange={(value) => handleFilterChange('logType', value === 'all' ? undefined : value)}
               >
-                <SelectTrigger className="h-8 w-32">
+                <SelectTrigger className="h-9 w-32 shadow-sm">
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
@@ -448,12 +464,12 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">日志级别</label>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">日志级别</label>
               <Select
                 value={filters.level || 'all'}
                 onValueChange={(value) => handleFilterChange('level', value === 'all' ? undefined : value)}
               >
-                <SelectTrigger className="h-8 w-32">
+                <SelectTrigger className="h-9 w-32 shadow-sm">
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
@@ -469,10 +485,12 @@ export function LogsTable({ initialFilters }: LogTableProps) {
           </div>
 
           {/* 第二行：时间筛选 */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">时间范围</label>
+              <div className="rounded-lg p-2 bg-gray-100 dark:bg-gray-800">
+                <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              </div>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">时间范围</label>
             </div>
             
             <div className="flex items-center gap-2">
@@ -483,10 +501,10 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                   setStartDate(e.target.value);
                   setQuickRangeType(null);
                 }}
-                className="h-8 w-40"
+                className="h-9 w-40 shadow-sm"
                 placeholder="开始日期"
               />
-              <span className="text-gray-500">至</span>
+              <span className="text-gray-500 dark:text-gray-400">至</span>
               <Input
                 type="date"
                 value={endDate}
@@ -494,26 +512,26 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                   setEndDate(e.target.value);
                   setQuickRangeType(null);
                 }}
-                className="h-8 w-40"
+                className="h-9 w-40 shadow-sm"
                 placeholder="结束日期"
               />
               <Button 
                 onClick={handleDateRangeChange} 
                 size="sm" 
                 variant="outline"
-                className="h-8 px-3"
+                className="h-9 px-4 shadow-sm hover:shadow-md transition-all"
               >
                 应用
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 border-l pl-3">
-              <span className="text-xs text-gray-500">快捷选择:</span>
+            <div className="flex items-center gap-2 border-l border-gray-300 dark:border-gray-600 pl-3">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">快捷选择:</span>
               <Button 
                 onClick={() => handleQuickDateRange('today')} 
                 size="sm" 
                 variant="ghost"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs"
               >
                 今天
               </Button>
@@ -521,7 +539,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                 onClick={() => handleQuickDateRange('yesterday')} 
                 size="sm" 
                 variant="ghost"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs"
               >
                 昨天
               </Button>
@@ -529,7 +547,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                 onClick={() => handleQuickDateRange('week')} 
                 size="sm" 
                 variant="ghost"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs"
               >
                 最近7天
               </Button>
@@ -537,7 +555,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                 onClick={() => handleQuickDateRange('month')} 
                 size="sm" 
                 variant="ghost"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs"
               >
                 最近30天
               </Button>
@@ -546,7 +564,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
 
           {/* 第三行：操作按钮 */}
           <div className="flex items-center gap-2">
-            <Button onClick={handleSearch} size="sm" className="h-8 px-4">
+            <Button onClick={handleSearch} size="sm" className="h-9 px-6">
               搜索
             </Button>
             {(search || filters.logType || filters.level || startDate || endDate) && (
@@ -554,13 +572,13 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                 onClick={handleClearFilters} 
                 variant="outline"
                 size="sm"
-                className="h-8 px-3"
+                className="h-9 px-4"
               >
                 清空筛选
               </Button>
             )}
             {(filters.startTime || filters.endTime) && (
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 ml-2">
                 {filters.startTime && `从 ${format(new Date(filters.startTime), 'yyyy-MM-dd')}`}
                 {filters.startTime && filters.endTime && ' '}
                 {filters.endTime && `到 ${format(new Date(filters.endTime), 'yyyy-MM-dd')}`}
@@ -598,38 +616,42 @@ export function LogsTable({ initialFilters }: LogTableProps) {
           {isLoading ? (
             <LoadingSpinner />
           ) : !data || data.items.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">暂无日志数据</div>
+            <EmptyState
+              icon={FileText}
+              title="暂无日志数据"
+              description="尝试调整筛选条件"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="border-b">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">时间</th>
-                    <th className="px-4 py-2 text-left font-medium">类型</th>
-                    <th className="px-4 py-2 text-left font-medium">级别</th>
-                    <th className="px-4 py-2 text-left font-medium">会话ID</th>
-                    <th className="px-4 py-2 text-left font-medium">消息</th>
-                    <th className="px-4 py-2 text-center font-medium">操作</th>
+                <thead>
+                  <tr className="border-b-2 border-gray-200 dark:border-gray-700">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">时间</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">类型</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">级别</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">会话ID</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">消息</th>
+                    <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.items.map((log) => (
-                    <tr key={log.logId} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-2 text-xs">
+                    <tr key={log.logId} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td className="px-4 py-4 text-xs font-medium">
                         {new Date(log.createdAt).toLocaleString('zh-CN')}
                       </td>
-                      <td className="px-4 py-2">
-                        <Badge variant="outline">{LOG_TYPE_LABELS[log.logType] || log.logType}</Badge>
+                      <td className="px-4 py-4">
+                        <Badge variant="outline" className="shadow-sm">{LOG_TYPE_LABELS[log.logType] || log.logType}</Badge>
                       </td>
-                      <td className="px-4 py-2">
-                        <Badge className={LOG_LEVEL_COLORS[log.level] || 'bg-gray-100'}>
+                      <td className="px-4 py-4">
+                        <Badge className={`${LOG_LEVEL_COLORS[log.level] || 'bg-gray-100'} shadow-sm`}>
                           {LOG_LEVEL_LABELS[log.level] || log.level}
                         </Badge>
                       </td>
-                      <td className="px-4 py-2">
+                      <td className="px-4 py-4">
                         <div className="flex items-center gap-1">
                           <button
-                            className="text-xs font-mono cursor-pointer hover:underline text-blue-600"
+                            className="text-xs font-mono cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium"
                             onClick={() => router.push(`/sessions/${log.sessionId}`)}
                             title="查看会话详情"
                           >
@@ -642,12 +664,12 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                             onClick={() => handleCopySessionId(log.sessionId)}
                             title={copiedId === log.sessionId ? '已复制!' : '复制会话ID'}
                           >
-                            <Copy className={`h-3 w-3 ${copiedId === log.sessionId ? 'text-green-600' : ''}`} />
+                            <Copy className={`h-3 w-3 ${copiedId === log.sessionId ? 'text-emerald-600' : ''}`} />
                           </Button>
                         </div>
                       </td>
-                      <td className="max-w-xs truncate px-4 py-2">{log.message}</td>
-                      <td className="px-4 py-2 text-center">
+                      <td className="max-w-xs truncate px-4 py-4">{log.message}</td>
+                      <td className="px-4 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <Button
                             variant="ghost"
@@ -666,134 +688,21 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             </div>
           )}
 
-          {/* 分页 */}
           {data && data.totalPages > 1 && (
-            <div className="mt-4 space-y-3">
-              <div className="text-sm text-gray-600">
-                第 {data.page} / {data.totalPages} 页，每页 {data.limit} 条，共 {data.total} 条
-              </div>
-              
-              {/* 页码导航 */}
-              <div className="flex flex-wrap items-center gap-2">
-                {/* 首页按钮 */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(1)}
-                  disabled={data.page <= 1}
-                  className="h-8 px-2 text-xs"
-                >
-                  首页
-                </Button>
-                
-                {/* 上一页 */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(data.page - 1)}
-                  disabled={data.page <= 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                
-                {/* 页码按钮 */}
-                <div className="flex gap-1">
-                  {(() => {
-                    const pages: (number | string)[] = [];
-                    const maxVisible = 5;
-                    const halfWindow = Math.floor(maxVisible / 2);
-                    let start = Math.max(1, data.page - halfWindow);
-                    let end = Math.min(data.totalPages, start + maxVisible - 1);
-                    
-                    if (end - start < maxVisible - 1) {
-                      start = Math.max(1, end - maxVisible + 1);
-                    }
-                    
-                    if (start > 1) {
-                      pages.push(1);
-                      if (start > 2) pages.push('...');
-                    }
-                    
-                    for (let i = start; i <= end; i++) {
-                      pages.push(i);
-                    }
-                    
-                    if (end < data.totalPages) {
-                      if (end < data.totalPages - 1) pages.push('...');
-                      pages.push(data.totalPages);
-                    }
-                    
-                    return pages.map((page, idx) => (
-                      typeof page === 'number' ? (
-                        <Button
-                          key={idx}
-                          variant={page === data.page ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handlePageChange(page)}
-                          className="h-8 w-8 p-0 text-xs"
-                        >
-                          {page}
-                        </Button>
-                      ) : (
-                        <span key={idx} className="px-2 text-gray-500">...</span>
-                      )
-                    ));
-                  })()}
-                </div>
-                
-                {/* 下一页 */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(data.page + 1)}
-                  disabled={data.page >= data.totalPages}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                
-                {/* 末页按钮 */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(data.totalPages)}
-                  disabled={data.page >= data.totalPages}
-                  className="h-8 px-2 text-xs"
-                >
-                  末页
-                </Button>
-                
-                {/* 跳转输入框 */}
-                <div className="flex items-center gap-2 ml-auto whitespace-nowrap">
-                  <span className="text-xs text-gray-600">跳转:</span>
-                  <span className="text-xs text-gray-600">页码</span>
-                  <Input
-                    type="number"
-                    min="1"
-                    max={data.totalPages}
-                    placeholder="1"
-                    className="h-8 w-20 text-xs"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const page = parseInt((e.target as HTMLInputElement).value);
-                        if (page >= 1 && page <= data.totalPages) {
-                          handlePageChange(page);
-                          (e.target as HTMLInputElement).value = '';
-                        }
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
+            <Pagination
+              currentPage={data.page}
+              totalPages={data.totalPages}
+              total={data.total}
+              limit={data.limit}
+              onPageChange={handlePageChange}
+            />
           )}
         </CardContent>
       </Card>
 
       {/* 快速查看Dialog */}
       <Dialog open={sheetOpen} onOpenChange={setSheetOpen}>
-        <DialogContent className="w-[95vw] max-w-7xl max-h-[80vh] flex flex-col">
+        <DialogContent className="!w-[90vw] !max-w-5xl !max-h-[85vh] flex flex-col !p-6 !gap-4 overflow-hidden">
           <DialogHeader>
             <DialogTitle>日志详情</DialogTitle>
             <DialogDescription>

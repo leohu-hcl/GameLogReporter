@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
+import { StatCard } from '@/components/common/StatCard';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useDevicesList } from '@/hooks/useDeviceQueries';
 import { Button } from '@/components/ui/button';
@@ -11,17 +14,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Smartphone, Activity, BarChart3, FileText } from 'lucide-react';
+import { useSettings } from '@/context/SettingsContext';
 
 /**
  * 设备列表页面
  */
 export default function DevicesPage() {
   const router = useRouter();
+  const { getPageSize } = useSettings();
+  const pageSize = getPageSize('devices');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
 
-  const { data, isLoading, error } = useDevicesList(page, limit);
+  const { data, isLoading, error } = useDevicesList(page, pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
 
   if (isLoading) {
     return (
@@ -55,57 +64,44 @@ export default function DevicesPage() {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          {/* 页头 */}
-          <div>
-            <h1 className="text-3xl font-bold">设备管理</h1>
-            <p className="text-gray-500 mt-2">查看和管理所有游戏设备</p>
-          </div>
+          <PageHeader 
+            title="设备管理" 
+            description="查看和管理所有游戏设备"
+          />
 
           {/* 统计卡片 */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">设备总数</p>
-                  <p className="text-3xl font-bold">{pagination.total}</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">活跃设备</p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {devices.filter((d) => d.isActive).length}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">平均会话数</p>
-                  <p className="text-3xl font-bold">
-                    {devices.length > 0
-                      ? (
-                          devices.reduce((sum, d) => sum + (d.sessionCount || 0), 0) /
-                          devices.length
-                        ).toFixed(1)
-                      : 0}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 mb-2">总日志数</p>
-                  <p className="text-3xl font-bold">
-                    {devices.reduce((sum, d) => sum + (d.logCount || 0), 0)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="设备总数"
+              value={pagination.total}
+              icon={Smartphone}
+              iconColor="text-blue-600"
+            />
+            <StatCard
+              title="活跃设备"
+              value={devices.filter((d) => d.isActive).length}
+              icon={Activity}
+              iconColor="text-green-600"
+            />
+            <StatCard
+              title="平均会话数"
+              value={
+                devices.length > 0
+                  ? (
+                      devices.reduce((sum, d) => sum + (d.sessionCount || 0), 0) /
+                      devices.length
+                    ).toFixed(1)
+                  : 0
+              }
+              icon={BarChart3}
+              iconColor="text-purple-600"
+            />
+            <StatCard
+              title="总日志数"
+              value={devices.reduce((sum, d) => sum + (d.logCount || 0), 0)}
+              icon={FileText}
+              iconColor="text-amber-600"
+            />
           </div>
 
           {/* 设备列表 */}
@@ -118,45 +114,49 @@ export default function DevicesPage() {
             </CardHeader>
             <CardContent>
               {devices.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">暂无设备数据</div>
+                <EmptyState
+                  icon={Smartphone}
+                  title="暂无设备数据"
+                  description="还没有任何设备连接到系统"
+                />
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                   <table className="w-full text-sm">
-                    <thead className="border-b">
-                      <tr>
-                        <th className="px-4 py-2 text-left font-medium">设备型号</th>
-                        <th className="px-4 py-2 text-left font-medium">平台</th>
-                        <th className="px-4 py-2 text-left font-medium">OS版本</th>
-                        <th className="px-4 py-2 text-center font-medium">会话数</th>
-                        <th className="px-4 py-2 text-center font-medium">日志数</th>
-                        <th className="px-4 py-2 text-left font-medium">最后连接</th>
-                        <th className="px-4 py-2 text-center font-medium">状态</th>
-                        <th className="px-4 py-2 text-center font-medium">操作</th>
+                    <thead className="bg-gray-50 dark:bg-gray-800">
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">设备型号</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">平台</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">OS版本</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">会话数</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">日志数</th>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">最后连接</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">状态</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">操作</th>
                       </tr>
                     </thead>
                     <tbody>
                       {devices.map((device) => (
-                        <tr key={device.deviceId} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-2 font-medium">{device.deviceModel}</td>
-                          <td className="px-4 py-2">
+                        <tr key={device.deviceId} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{device.deviceModel}</td>
+                          <td className="px-4 py-3">
                             <Badge variant="outline">{device.platform}</Badge>
                           </td>
-                          <td className="px-4 py-2 text-xs">{device.osVersion || '-'}</td>
-                          <td className="px-4 py-2 text-center">{device.sessionCount || 0}</td>
-                          <td className="px-4 py-2 text-center">{device.logCount || 0}</td>
-                          <td className="px-4 py-2 text-xs">
+                          <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{device.osVersion || '-'}</td>
+                          <td className="px-4 py-3 text-center text-gray-900 dark:text-gray-100">{device.sessionCount || 0}</td>
+                          <td className="px-4 py-3 text-center text-gray-900 dark:text-gray-100">{device.logCount || 0}</td>
+                          <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                             {new Date(device.lastSeen).toLocaleString('zh-CN')}
                           </td>
-                          <td className="px-4 py-2 text-center">
+                          <td className="px-4 py-3 text-center">
                             {device.isActive ? (
-                              <Badge variant="default" className="bg-green-600">
+                              <Badge variant="default">
                                 活跃
                               </Badge>
                             ) : (
                               <Badge variant="secondary">离线</Badge>
                             )}
                           </td>
-                          <td className="px-4 py-2 text-center">
+                          <td className="px-4 py-3 text-center">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -174,13 +174,17 @@ export default function DevicesPage() {
               )}
 
               {/* 分页 */}
-              <Pagination
-                currentPage={page}
-                totalPages={pagination.totalPages}
-                total={pagination.total}
-                limit={limit}
-                onPageChange={setPage}
-              />
+              {pagination.totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination
+                    currentPage={page}
+                    totalPages={pagination.totalPages}
+                    total={pagination.total}
+                    limit={pageSize}
+                    onPageChange={setPage}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -1,15 +1,17 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { LogsTable } from '@/components/logs/LogsTable';
 import { LogFilters } from '@/types';
 
 /**
- * 日志列表页面
+ * 日志列表页面内容
  */
-export default function LogsPage() {
+function LogsPageContent() {
   const searchParams = useSearchParams();
 
   // 从 URL 查询参数构建初始筛选条件
@@ -24,16 +26,24 @@ export default function LogsPage() {
   };
 
   return (
+    <div className="space-y-6">
+      <PageHeader title="日志" description="查看和管理所有游戏日志" />
+
+      <LogsTable initialFilters={initialFilters} />
+    </div>
+  );
+}
+
+/**
+ * 日志列表页面
+ */
+export default function LogsPage() {
+  return (
     <ProtectedRoute>
       <Layout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">日志</h1>
-            <p className="text-gray-600">查看和管理所有游戏日志</p>
-          </div>
-
-          <LogsTable initialFilters={initialFilters} />
-        </div>
+        <Suspense fallback={<div>加载中...</div>}>
+          <LogsPageContent />
+        </Suspense>
       </Layout>
     </ProtectedRoute>
   );

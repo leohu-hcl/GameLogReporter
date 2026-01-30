@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
+import { PageHeader } from '@/components/common/PageHeader';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -85,10 +86,10 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">仪表板</h1>
-            <p className="text-gray-600">欢迎回来！这是您的日志管理概览</p>
-          </div>
+          <PageHeader 
+            title="仪表板" 
+            description="欢迎回来！这是您的日志管理概览"
+          />
 
           {/* 统计卡片 */}
           <DashboardStats stats={stats} />
@@ -100,24 +101,24 @@ export default function DashboardPage() {
               <CardDescription>过去7天按严重程度分类的日志总数 (点击可查看相应日志)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {logLevelData.length > 0 ? (
                   logLevelData.map((item) => (
                     <button
                       key={item.level}
                       onClick={() => handleLevelClick(item.level)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
-                        <span className={`inline-block px-3 py-1 rounded-full text-sm ${item.color}`}>
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${item.color}`}>
                           {item.label}
                         </span>
                       </div>
-                      <span className="text-2xl font-bold">{item.count}</span>
+                      <span className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{item.count}</span>
                     </button>
                   ))
                 ) : (
-                  <p className="text-gray-500">暂无数据</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">暂无数据</p>
                 )}
               </div>
             </CardContent>

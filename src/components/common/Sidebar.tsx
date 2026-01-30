@@ -2,23 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, FileText, Bell, Users, Settings, Smartphone, ChevronDown, X } from 'lucide-react';
+import { BarChart3, FileText, Bell, Users, Settings, Smartphone, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
 
 interface SidebarProps {
   open: boolean;
+  onClose?: () => void;
 }
 
 /**
  * 侧边栏导航
  */
-export function Sidebar({ open }: SidebarProps) {
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(open);
 
   const menuItems = [
     {
@@ -73,27 +72,30 @@ export function Sidebar({ open }: SidebarProps) {
       {open && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
         />
       )}
 
       {/* 侧边栏 */}
       <aside
         className={cn(
-          'fixed md:relative top-0 left-0 w-64 h-screen bg-slate-900 text-white z-50 transition-transform duration-300 md:translate-x-0 flex flex-col',
+          'fixed md:relative top-0 left-0 w-64 h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 z-50 transition-transform duration-300 md:translate-x-0 flex flex-col border-r border-gray-200 dark:border-gray-800',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* 侧边栏头部 */}
-        <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-          <Link href="/dashboard" className="text-lg font-bold">
-            GameLog
+        <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center gap-2 group">
+            <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+              <BarChart3 className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+            </div>
+            <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">GameLog</span>
           </Link>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsOpen(false)}
-            className="md:hidden text-white hover:bg-slate-800"
+            onClick={onClose}
+            className="md:hidden text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -109,19 +111,19 @@ export function Sidebar({ open }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setIsOpen(false)}
+                onClick={onClose}
               >
                 <Button
                   variant="ghost"
                   className={cn(
-                    'w-full justify-start gap-2 text-slate-300',
-                    active 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'hover:bg-slate-800 hover:text-white'
+                    'w-full justify-start gap-3 text-gray-600 dark:text-gray-300',
+                    active
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white'
                   )}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="flex-1 text-left">{item.title}</span>
+                  <span className="flex-1 text-left font-medium">{item.title}</span>
                   {item.badge && (
                     <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
                       {item.badge}
@@ -134,12 +136,17 @@ export function Sidebar({ open }: SidebarProps) {
         </nav>
 
         {/* 用户信息 */}
-        <div className="p-4 border-t border-slate-700">
-          <div className="text-sm">
-            <p className="font-medium">{user?.username}</p>
-            <p className="text-slate-400 text-xs">
-              {user?.email}
-            </p>
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+            <div className="bg-gray-200 dark:bg-gray-700 rounded-full p-2">
+              <Users className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+            </div>
+            <div className="flex-1 text-sm">
+              <p className="font-medium text-gray-900 dark:text-white">{user?.username}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
+                {user?.email}
+              </p>
+            </div>
           </div>
         </div>
       </aside>

@@ -135,87 +135,91 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* 用户名 */}
-      <div className="space-y-2">
-        <label htmlFor="username" className="text-sm font-medium text-gray-700">用户名</label>
-        <Input
-          id="username"
-          name="username"
-          type="text"
-          placeholder="输入用户名"
-          value={formData.username}
-          onChange={handleInputChange}
-          disabled={isLoading || isSubmitting}
-          className={errors.username ? 'border-red-500' : ''}
-        />
-        {errors.username && (
-          <p className="text-sm text-red-500">{errors.username}</p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 用户名 */}
+        <div className="space-y-2">
+          <label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">用户名</label>
+          <Input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="输入用户名"
+            value={formData.username}
+            onChange={handleInputChange}
+            disabled={isLoading || isSubmitting}
+            className={errors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}
+          />
+          {errors.username && (
+            <p className="text-xs text-red-600">{errors.username}</p>
+          )}
+        </div>
+
+        {/* 邮箱 */}
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">邮箱</label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="输入邮箱"
+            value={formData.email}
+            onChange={handleInputChange}
+            disabled={isLoading || isSubmitting}
+            className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+          />
+          {errors.email && (
+            <p className="text-xs text-red-600">{errors.email}</p>
+          )}
+        </div>
       </div>
 
-      {/* 邮箱 */}
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-gray-700">邮箱</label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="输入邮箱"
-          value={formData.email}
-          onChange={handleInputChange}
-          disabled={isLoading || isSubmitting}
-          className={errors.email ? 'border-red-500' : ''}
-        />
-        {errors.email && (
-          <p className="text-sm text-red-500">{errors.email}</p>
-        )}
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 密码 */}
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {user ? '密码 (留空不修改)' : '密码'}
+          </label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder={user ? '留空不修改密码' : '输入密码'}
+            value={formData.password}
+            onChange={handleInputChange}
+            disabled={isLoading || isSubmitting}
+            className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
+          />
+          {errors.password && (
+            <p className="text-xs text-red-600">{errors.password}</p>
+          )}
+        </div>
 
-      {/* 密码 */}
-      <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-gray-700">
-          {user ? '密码 (留空不修改)' : '密码'}
-        </label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          placeholder={user ? '留空不修改密码' : '输入密码'}
-          value={formData.password}
-          onChange={handleInputChange}
-          disabled={isLoading || isSubmitting}
-          className={errors.password ? 'border-red-500' : ''}
-        />
-        {errors.password && (
-          <p className="text-sm text-red-500">{errors.password}</p>
-        )}
-      </div>
-
-      {/* 角色 */}
-      <div className="space-y-2">
-        <label htmlFor="role" className="text-sm font-medium text-gray-700">用户角色</label>
-        <Select value={formData.role} onValueChange={handleRoleChange} disabled={isLoading || isSubmitting}>
-          <SelectTrigger id="role">
-            <SelectValue placeholder="选择角色" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="admin">管理员 (Admin)</SelectItem>
-            <SelectItem value="editor">编辑者 (Editor)</SelectItem>
-            <SelectItem value="viewer">查看者 (Viewer)</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* 角色 */}
+        <div className="space-y-2">
+          <label htmlFor="role" className="text-sm font-medium text-gray-700 dark:text-gray-300">用户角色</label>
+          <Select value={formData.role} onValueChange={handleRoleChange} disabled={isLoading || isSubmitting}>
+            <SelectTrigger id="role">
+              <SelectValue placeholder="选择角色" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="admin">管理员 (Admin)</SelectItem>
+              <SelectItem value="editor">编辑者 (Editor)</SelectItem>
+              <SelectItem value="viewer">查看者 (Viewer)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* 启用状态 */}
       {user && (
-        <div className="flex items-center gap-2 border rounded-lg p-3">
+        <div className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
           <Checkbox
             id="isActive"
             checked={formData.isActive}
             onCheckedChange={handleActiveChange}
             disabled={isLoading || isSubmitting}
           />
-          <label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">
+          <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
             启用账户
           </label>
         </div>
