@@ -1,203 +1,45 @@
 # GameLogReporter Web - 开发指南
 
-## 🎯 开发工作流程
+## 开发流程
 
-### 1. 获取最新代码
+1. 获取最新代码与依赖
 
-```bash
-# 进入项目目录
-cd web-new
-
-# 获取最新更新
+```
+cd web
 git pull origin main
-
-# 安装新的依赖 (如果有 package.json 更新)
 npm install
 ```
 
-### 2. 启动开发服务器
+2. 启动开发服务器
 
-```bash
+```
 npm run dev
 ```
 
-访问 `http://localhost:3000` (如果端口被占用，Next.js 会自动选择其他端口)
+默认端口为 `3001`。
 
-### 3. 代码编辑和测试
+3. 提交前检查
 
-- 修改文件后会自动热更新
-- 打开浏览器的开发者工具检查错误
-- 在终端中检查 TypeScript 和 Lint 错误
-
-### 4. 提交代码前
-
-```bash
-# 类型检查
+```
 npm run type-check
-
-# 代码检查
 npm run lint
-
-# 代码格式化
 npm run format
-
-# 本地构建验证
 npm run build
 ```
 
-## 📝 编码规范
+## 编码规范（简版）
 
-### TypeScript
+- TypeScript：避免 `any`，为组件/接口补充类型
+- React：需要交互的组件使用 `use client`
+- 样式：优先使用 Tailwind 与 shadcn/ui 组件
+- className 组合请按“布局 / 间距 / 颜色 / 状态”分组
 
-1. **总是添加类型注解**
+## 目录约定
 
-```typescript
-// ❌ 不好
-const user = getUserData();
-
-// ✅ 好
-const user: User = getUserData();
-```
-
-2. **使用接口定义对象类型**
-
-```typescript
-// 在 src/types/ 中定义
-export interface User {
-  userId: string;
-  username: string;
-  email: string;
-  role: 'admin' | 'user';
-}
-```
-
-3. **避免 any 类型**
-
-```typescript
-// ❌ 不好
-const data: any = await fetch();
-
-// ✅ 好
-interface ApiResponse {
-  success: boolean;
-  data: Log[];
-}
-const response: ApiResponse = await fetch();
-```
-
-### React 组件
-
-1. **使用 'use client' 标记客户端组件**
-
-```typescript
-'use client';
-
-import { useState } from 'react';
-
-export function MyComponent() {
-  // ...
-}
-```
-
-2. **使用函数组件和 Hooks**
-
-```typescript
-// ✅ 推荐的写法
-export function LogsTable() {
-  const { data, isLoading } = useLogsList();
-  
-  return (
-    // JSX
-  );
-}
-```
-
-3. **Props 类型定义**
-
-```typescript
-interface LogsTableProps {
-  initialFilters?: LogFilters;
-  onRowClick?: (log: Log) => void;
-}
-
-export function LogsTable({ initialFilters, onRowClick }: LogsTableProps) {
-  // ...
-}
-```
-
-### 样式
-
-1. **优先使用 Tailwind CSS**
-
-```typescript
-// ✅ 好
-<div className="flex items-center justify-between p-4 bg-white rounded-lg">
-
-// ❌ 避免 inline styles
-<div style={{ display: 'flex', justifyContent: 'space-between' }}>
-```
-
-2. **使用 shadcn/ui 组件**
-
-```typescript
-// ✅ 优先使用组件库
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
-// ❌ 不要自己写样式
-<div className="...">Submit</div>
-```
-
-3. **组织 className**
-
-```typescript
-// 将 Tailwind class 按功能分组
-<div className="
-  flex items-center justify-between
-  p-4 bg-white rounded-lg
-  border border-gray-200
-  hover:shadow-md transition-shadow
-">
-```
-
-## 🏗️ 项目结构规范
-
-### 添加新的 API 服务
-
-```typescript
-// 1. 创建 src/api/newService.ts
-import { apiClient } from './client';
-
-export const newService = {
-  getItems: async (filters?: any) => {
-    const response = await apiClient.get('/endpoint', { params: filters });
-    return response.data;
-  },
-};
-
-// 2. 在 src/types/ 中定义类型
-export interface Item {
-  id: string;
-  name: string;
-}
-
-// 3. 在 src/hooks/ 中创建 hooks
-export function useItems() {
-  return useQuery({
-    queryKey: ['items'],
-    queryFn: () => newService.getItems(),
-  });
-}
-```
-
-### 添加新的页面
-
-```typescript
-// 1. 创建 src/app/newpage/page.tsx
-'use client';
-
-import { ProtectedRoute } from '@/components/common/ProtectedRoute';
-import { Layout } from '@/components/common/Layout';
+- 页面：src/app/**/page.tsx
+- 通用组件：src/components/common
+- 业务组件：src/components/<domain>
+- 数据请求：src/api + src/hooks
 
 export default function NewPage() {
   return (
