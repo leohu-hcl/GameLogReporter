@@ -12,6 +12,7 @@ router.post('/logout', userController.logout);
 
 // 需要认证的接口
 router.get('/me', authenticateToken, userController.getCurrentUser);
+router.post('/change-password', authenticateToken, userController.changePassword);
 router.post('/reset-password', userController.resetPassword);
 router.post('/verify-and-reset', userController.verifyAndResetPassword);
 

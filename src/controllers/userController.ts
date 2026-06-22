@@ -37,6 +37,24 @@ export async function getCurrentUser(req: AuthRequest, res: Response, next: Next
   }
 }
 
+export async function changePassword(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new AppError('User not authenticated', 401);
+    }
+
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      throw new AppError('Old password and new password are required', 400);
+    }
+
+    await userService.changePassword(req.user.userId, oldPassword, newPassword);
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { page = 1, limit = 20, search, role, isActive } = req.query;

@@ -251,3 +251,39 @@ export async function refreshAuthToken(token: string): Promise<{ accessToken: st
     throw new AppError('Invalid or expired refresh token', 401);
   }
 }
+
+export async function changePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
+  try {
+    // 获取用户并验证旧密码
+    const user = await User.findById(userId).select('+password');
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // 验证旧密码是否正确
+    const isPasswordValid = await user.comparePassword(oldPassword);
+    if (!isPasswordValid) {
+      throw new AppError('Old password is incorrect', 401);
+    }
+
+    // 验证新密码强度（至少8个字符）
+    if (newPassword.length < 8) {
+      throw new AppError('New password must be at least 8 characters long', 400);
+    }
+
+    // 检查新密码与旧密码是否相同
+    const isSamePassword = await user.comparePassword(newPassword);
+    if (isSamePassword) {
+      throw new AppError('New password cannot be the same as old password', 400);
+    }
+
+    // 更新密码
+    user.password = newPassword;
+    await user.save();
+
+    logger.info(`Password changed for user: ${userId}`);
+  } catch (error) {
+    logger.error('Error changing password:', error);
+    throw error;
+  }
+}
