@@ -77,25 +77,25 @@ export function SystemSettings() {
       title: '活跃会话',
       value: stats?.activeSessions || 0,
       icon: Activity,
-      iconColor: 'text-emerald-600',
+      iconColor: 'text-success',
     },
     {
       title: '总会话数',
       value: stats?.totalSessions || 0,
       icon: Database,
-      iconColor: 'text-blue-600',
+      iconColor: 'text-primary',
     },
     {
       title: '最后清理时间',
       value: stats?.lastCleanupTime ? format(new Date(stats.lastCleanupTime), 'MM-dd HH:mm') : '-',
       icon: Clock,
-      iconColor: 'text-purple-600',
+      iconColor: 'text-info',
     },
     {
       title: '最后告警检查',
       value: stats?.lastAlertCheckTime ? format(new Date(stats.lastAlertCheckTime), 'MM-dd HH:mm') : '-',
       icon: Bell,
-      iconColor: 'text-orange-600',
+      iconColor: 'text-warning',
     },
   ];
 
@@ -122,10 +122,10 @@ export function SystemSettings() {
         </CardHeader>
         <CardContent className="space-y-6">
           {updateSuccess && (
-            <Alert className="border-emerald-200 dark:border-emerald-800">
+            <Alert className="border-success/30">
               <div className="flex items-center gap-3">
-                <CheckCircle className="h-4 w-4 text-emerald-600" />
-                <AlertDescription className="text-emerald-800 dark:text-emerald-300">
+                <CheckCircle className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
                   配置已更新成功。需要重启服务器才能生效新的轮询间隔设置。
                 </AlertDescription>
               </div>
@@ -135,10 +135,10 @@ export function SystemSettings() {
           {/* 配置表单 */}
           <div className="space-y-6">
             <div className="group">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-semibold text-foreground">
                 清理任务执行间隔（分钟）
               </label>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-muted-foreground">
                 系统每隔多长时间检查一次不活跃的会话（范围：1-1440）
               </p>
               <div className="relative mt-2">
@@ -148,16 +148,16 @@ export function SystemSettings() {
                   max="1440"
                   value={cleanupInterval}
                   onChange={(e) => setCleanupInterval(e.target.value ? Number(e.target.value) : '')}
-                  className="border-gray-300 shadow-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:focus:border-indigo-400"
+                  className="border-border transition-all"
                 />
               </div>
             </div>
 
             <div className="group">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-semibold text-foreground">
                 判定不活跃的时间（小时）
               </label>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-muted-foreground">
                 如果会话没有新日志超过此时间，将被标记为已结束（范围：1-720）
               </p>
               <div className="relative mt-2">
@@ -167,25 +167,25 @@ export function SystemSettings() {
                   max="720"
                   value={inactiveHours}
                   onChange={(e) => setInactiveHours(e.target.value ? Number(e.target.value) : '')}
-                  className="border-gray-300 shadow-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:focus:border-indigo-400"
+                  className="border-border transition-all"
                 />
               </div>
             </div>
 
             {/* 当前配置显示 */}
             {config && (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+              <div className="rounded-lg border border-border bg-background p-4">
                 <div className="mb-2 flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">当前配置</p>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-semibold text-foreground">当前配置</p>
                 </div>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                     <span>清理任务执行间隔：<span className="font-mono font-semibold">{config.sessionCleanupInterval}</span> 分钟</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                     <span>判定不活跃时间：<span className="font-mono font-semibold">{config.inactiveSessionHours}</span> 小时</span>
                   </div>
                 </div>
@@ -214,16 +214,16 @@ export function SystemSettings() {
           </div>
 
           {/* 提示信息 */}
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+          <div className="rounded-xl border border-primary/30 bg-primary/10 p-4">
             <div className="flex gap-3">
-              <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900">
-                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-lg bg-primary/10 p-2">
+                <AlertCircle className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-200">
+                <h4 className="font-semibold text-sm text-primary">
                   💡 小贴士
                 </h4>
-                <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
+                <p className="mt-1 text-xs text-primary">
                   修改清理任务执行间隔后需要重启服务器才能生效。修改判定不活跃时间可立即生效，新规则会在下次清理时应用。
                 </p>
               </div>

@@ -32,14 +32,14 @@ export function SearchBar({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
-        <Search className="h-4 w-4 text-gray-400" />
+      <div className="flex items-center gap-2 rounded-md border border-input bg-card px-3 py-1.5 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-ring/40">
+        <Search className="h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="h-7 w-64 border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="h-7 w-64 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
       <Button onClick={onSearch} size="sm" className="h-9 px-4">
@@ -47,7 +47,7 @@ export function SearchBar({
       </Button>
       {showClearButton && value && onClear && (
         <Button onClick={onClear} variant="outline" size="sm" className="h-9 px-3">
-          <X className="h-4 w-4 mr-1" />
+          <X className="mr-1 h-4 w-4" />
           清空
         </Button>
       )}

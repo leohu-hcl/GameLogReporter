@@ -138,7 +138,7 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 用户名 */}
         <div className="space-y-2">
-          <label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">用户名</label>
+          <label htmlFor="username" className="text-sm font-medium text-foreground">用户名</label>
           <Input
             id="username"
             name="username"
@@ -147,16 +147,16 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
             value={formData.username}
             onChange={handleInputChange}
             disabled={isLoading || isSubmitting}
-            className={errors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}
+            className={errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}
           />
           {errors.username && (
-            <p className="text-xs text-red-600">{errors.username}</p>
+            <p className="text-xs text-destructive">{errors.username}</p>
           )}
         </div>
 
         {/* 邮箱 */}
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">邮箱</label>
+          <label htmlFor="email" className="text-sm font-medium text-foreground">邮箱</label>
           <Input
             id="email"
             name="email"
@@ -165,10 +165,10 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
             value={formData.email}
             onChange={handleInputChange}
             disabled={isLoading || isSubmitting}
-            className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+            className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
           />
           {errors.email && (
-            <p className="text-xs text-red-600">{errors.email}</p>
+            <p className="text-xs text-destructive">{errors.email}</p>
           )}
         </div>
       </div>
@@ -176,7 +176,7 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 密码 */}
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="password" className="text-sm font-medium text-foreground">
             {user ? '密码 (留空不修改)' : '密码'}
           </label>
           <Input
@@ -187,16 +187,16 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
             value={formData.password}
             onChange={handleInputChange}
             disabled={isLoading || isSubmitting}
-            className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
+            className={errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
           />
           {errors.password && (
-            <p className="text-xs text-red-600">{errors.password}</p>
+            <p className="text-xs text-destructive">{errors.password}</p>
           )}
         </div>
 
         {/* 角色 */}
         <div className="space-y-2">
-          <label htmlFor="role" className="text-sm font-medium text-gray-700 dark:text-gray-300">用户角色</label>
+          <label htmlFor="role" className="text-sm font-medium text-foreground">用户角色</label>
           <Select value={formData.role} onValueChange={handleRoleChange} disabled={isLoading || isSubmitting}>
             <SelectTrigger id="role">
               <SelectValue placeholder="选择角色" />
@@ -212,14 +212,14 @@ export function UserForm({ user, isLoading = false, onSubmit, onCancel }: UserFo
 
       {/* 启用状态 */}
       {user && (
-        <div className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+        <div className="flex items-center gap-2 border border-border rounded-lg p-3">
           <Checkbox
             id="isActive"
             checked={formData.isActive}
             onCheckedChange={handleActiveChange}
             disabled={isLoading || isSubmitting}
           />
-          <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+          <label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer">
             启用账户
           </label>
         </div>

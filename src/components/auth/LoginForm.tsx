@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Terminal } from 'lucide-react';
 
 /**
  * 登录表单组件
@@ -61,29 +62,33 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-2xl">欢迎回来</CardTitle>
-        <CardDescription>登录到 GameLogReporter</CardDescription>
+    <Card className="w-full max-w-md border-border glow-primary">
+      <CardHeader className="items-center text-center">
+        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground glow-primary">
+          <Terminal className="h-6 w-6" strokeWidth={2.5} />
+        </div>
+        <p className="eyebrow">GAMELOG · REPORTER</p>
+        <CardTitle className="font-display text-2xl tracking-tight">欢迎回来</CardTitle>
+        <CardDescription>登录到游戏日志管理控制台</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <Alert variant="destructive" className="bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800">
-              <AlertDescription className="text-red-800 dark:text-red-300">{error}</AlertDescription>
+            <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
+              <AlertDescription className="text-destructive">{error}</AlertDescription>
             </Alert>
           )}
 
           {/* 演示提示 */}
-          <Alert className="border-blue-200 dark:border-blue-800">
-            <AlertDescription className="text-sm text-blue-900 dark:text-blue-300">
+          <Alert className="border-info/30 bg-info/10">
+            <AlertDescription className="text-sm text-info">
               <strong>演示账号：</strong><br />
               邮箱: admin@gamelog.com | 密码: Admin@123456
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <label htmlFor="email" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               邮箱或用户名
             </label>
             <Input
@@ -95,12 +100,12 @@ export function LoginForm() {
               onChange={handleChange}
               disabled={loading}
               required
-              className="h-11 border-gray-300 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:focus:border-blue-400"
+              className="h-11"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <label htmlFor="password" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               密码
             </label>
             <Input
@@ -112,7 +117,7 @@ export function LoginForm() {
               onChange={handleChange}
               disabled={loading}
               required
-              className="h-11 border-gray-300 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:focus:border-blue-400"
+              className="h-11"
             />
           </div>
 
@@ -124,24 +129,24 @@ export function LoginForm() {
               onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: !!checked }))}
               disabled={loading}
             />
-            <label htmlFor="rememberMe" className="text-sm font-medium cursor-pointer text-gray-700 dark:text-gray-300">
+            <label htmlFor="rememberMe" className="cursor-pointer text-sm font-medium text-muted-foreground">
               记住我
             </label>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full h-11">
+          <Button type="submit" disabled={loading} className="h-11 w-full">
             {loading ? '登录中...' : '登录'}
           </Button>
 
-          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-center text-sm text-muted-foreground">
             还没有账户？{' '}
-            <Link href="/auth/register" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link href="/auth/register" className="font-medium text-primary hover:underline">
               注册
             </Link>
           </div>
 
           <div className="text-center text-sm">
-            <Link href="/auth/reset-password" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link href="/auth/reset-password" className="font-medium text-primary hover:underline">
               忘记密码？
             </Link>
           </div>

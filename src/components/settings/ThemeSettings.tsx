@@ -45,15 +45,15 @@ export function ThemeSettings() {
       <Card>
         <CardHeader className="space-y-3 pb-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-gray-100 dark:bg-gray-800 p-2.5">
-              <Sun className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            <div className="rounded-lg bg-muted p-2.5">
+              <Sun className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <CardTitle className="text-2xl">主题外观</CardTitle>
               <CardDescription className="text-sm">
                 选择您喜欢的应用主题
                 {theme === 'system' && (
-                  <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  <span className="ml-2 inline-flex items-center rounded-full bg-info/15 px-2 py-0.5 text-xs font-medium text-info border border-info/30">
                     当前：{effectiveTheme === 'dark' ? '暗色' : '亮色'}
                   </span>
                 )}
@@ -76,15 +76,15 @@ export function ThemeSettings() {
                   className={`
                     group rounded-xl border p-6 text-left transition-colors
                     ${isSelected
-                      ? `${t.borderColor} bg-gray-50 dark:bg-gray-900`
-                      : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900'
+                      ? `${t.borderColor} bg-background`
+                      : 'border-border hover:bg-muted/50'
                     }
                   `}
                 >
                   {/* 选中指示器 */}
                   {isSelected && (
                     <div className="flex items-center justify-end">
-                      <Check className="h-4 w-4 text-blue-600" strokeWidth={3} />
+                      <Check className="h-4 w-4 text-primary" strokeWidth={3} />
                     </div>
                   )}
 
@@ -98,10 +98,10 @@ export function ThemeSettings() {
 
                     {/* 文字 */}
                     <div className="text-center">
-                      <p className={`font-semibold text-base ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                      <p className={`font-semibold text-base ${isSelected ? 'text-foreground' : 'text-foreground'}`}>
                         {t.label}
                       </p>
-                      <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      <p className="mt-1.5 text-xs text-muted-foreground">
                         {t.description}
                       </p>
                     </div>
@@ -113,17 +113,17 @@ export function ThemeSettings() {
           </div>
 
           {/* 主题预览区域 */}
-          <Card className="overflow-hidden border border-dashed border-gray-300 dark:border-gray-700">
-            <CardHeader className="bg-gray-50 dark:bg-gray-800">
-              <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          <Card className="overflow-hidden border border-dashed border-border">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-sm font-semibold text-foreground">
                 🎨 主题预览
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               {/* 卡片预览 */}
-              <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                <div className="mb-2 h-3 w-24 rounded-full bg-gray-200 dark:bg-gray-700" />
-                <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-900" />
+              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div className="mb-2 h-3 w-24 rounded-full bg-muted" />
+                <div className="h-2 w-full rounded-full bg-muted/50" />
               </div>
 
               {/* 按钮预览 */}
@@ -131,7 +131,7 @@ export function ThemeSettings() {
                 <div className="h-8 rounded-lg bg-blue-500 px-4 shadow-sm" />
                 <div className="h-8 rounded-lg bg-green-500 px-4 shadow-sm" />
                 <div className="h-8 rounded-lg bg-purple-500 px-4 shadow-sm" />
-                <div className="h-8 rounded-lg border border-gray-300 bg-white px-4 dark:border-gray-600 dark:bg-gray-800" />
+                <div className="h-8 rounded-lg border border-border bg-card px-4" />
               </div>
 
               {/* 颜色调色板 */}
@@ -142,23 +142,23 @@ export function ThemeSettings() {
                 <div className="h-10 flex-1 rounded-lg bg-gray-500 dark:bg-gray-400" />
               </div>
 
-              <p className="pt-1 text-center text-xs text-gray-500 dark:text-gray-400">
+              <p className="pt-1 text-center text-xs text-muted-foreground">
                 ✨ 当前主题下的UI元素效果
               </p>
             </CardContent>
           </Card>
 
           {/* 提示信息 */}
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+          <div className="rounded-xl border border-primary/30 bg-primary/10 p-4">
             <div className="flex gap-3">
-              <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900">
-                <Monitor className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Monitor className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-200">
+                <h4 className="font-semibold text-sm text-primary">
                   💡 小贴士
                 </h4>
-                <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
+                <p className="mt-1 text-xs text-primary">
                   主题设置会自动保存，下次访问时自动应用。选择"跟随系统"可让应用随系统主题自动切换。
                 </p>
               </div>

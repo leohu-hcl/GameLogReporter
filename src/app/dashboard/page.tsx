@@ -64,7 +64,7 @@ export default function DashboardPage() {
           level,
           count,
           label: LOG_LEVEL_LABELS[level] || level,
-          color: LOG_LEVEL_COLORS[level] || 'bg-gray-100 text-gray-800',
+          color: LOG_LEVEL_COLORS[level] || 'bg-muted text-muted-foreground border-border',
         }))
   }, [last7DaysStats]);
 
@@ -103,22 +103,23 @@ export default function DashboardPage() {
             <CardContent>
               <div className="space-y-2">
                 {logLevelData.length > 0 ? (
-                  logLevelData.map((item) => (
+                  logLevelData.map((item, index) => (
                     <button
                       key={item.level}
                       onClick={() => handleLevelClick(item.level)}
-                      className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                      className="animate-rise flex w-full cursor-pointer items-center justify-between rounded-md border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/40"
+                      style={{ animationDelay: `${index * 60}ms` }}
                     >
                       <div className="flex items-center gap-3">
-                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${item.color}`}>
+                        <span className={`inline-block rounded-full border px-3 py-1 text-sm font-medium ${item.color}`}>
                           {item.label}
                         </span>
                       </div>
-                      <span className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{item.count}</span>
+                      <span className="font-display text-2xl font-bold tabular-nums text-foreground">{item.count}</span>
                     </button>
                   ))
                 ) : (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">暂无数据</p>
+                  <p className="py-8 text-center text-muted-foreground">暂无数据</p>
                 )}
               </div>
             </CardContent>

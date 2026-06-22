@@ -144,11 +144,11 @@ export default function SessionDetailPage() {
   };
 
   const LOG_LEVEL_COLORS: Record<string, string> = {
-    debug: 'bg-gray-100 text-gray-800',
-    info: 'bg-blue-100 text-blue-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    error: 'bg-red-100 text-red-800',
-    critical: 'bg-red-200 text-red-900',
+    debug: 'bg-muted text-muted-foreground border border-border',
+    info: 'bg-info/15 text-info border border-info/30',
+    warning: 'bg-warning/15 text-warning border border-warning/30',
+    error: 'bg-destructive/15 text-destructive border border-destructive/30',
+    critical: 'bg-destructive/15 text-destructive border border-destructive/30',
   };
 
   if (isLoading) {
@@ -178,15 +178,15 @@ export default function SessionDetailPage() {
             </Button>
 
             <div className="flex items-center justify-center min-h-96">
-              <Card className="w-full max-w-md border-red-200 bg-red-50">
+              <Card className="w-full max-w-md border-destructive/30 bg-destructive/10">
                 <CardHeader>
-                  <CardTitle className="text-red-800">会话不存在</CardTitle>
-                  <CardDescription className="text-red-600">
+                  <CardTitle className="text-destructive">会话不存在</CardTitle>
+                  <CardDescription className="text-destructive">
                     {error?.message || '您要查看的会话已不存在或已被删除'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="rounded bg-red-100 p-3 text-sm text-red-700">
+                  <div className="rounded bg-destructive/10 p-3 text-sm text-destructive">
                     <p className="font-medium mb-1">可能的原因：</p>
                     <ul className="list-inside list-disc space-y-1 text-xs">
                       <li>会话ID 输入错误</li>
@@ -197,9 +197,9 @@ export default function SessionDetailPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       <span className="font-medium">会话ID：</span>
-                      <code className="ml-2 inline-block bg-gray-200 px-2 py-1 rounded text-xs font-mono">
+                      <code className="ml-2 inline-block bg-muted px-2 py-1 rounded text-xs font-mono">
                         {sessionId}
                       </code>
                     </p>
@@ -270,7 +270,7 @@ export default function SessionDetailPage() {
                 label: '会话ID',
                 value: (
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded break-all">
+                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded break-all">
                       {session.sessionId}
                     </code>
                     <Button
@@ -281,7 +281,7 @@ export default function SessionDetailPage() {
                     >
                       <Copy
                         className={`h-4 w-4 ${
-                          copiedId === `session-${session.sessionId}` ? 'text-green-600' : ''
+                          copiedId === `session-${session.sessionId}` ? 'text-success' : ''
                         }`}
                       />
                     </Button>
@@ -292,7 +292,7 @@ export default function SessionDetailPage() {
                 label: '设备ID',
                 value: (
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded truncate">
+                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate">
                       {session.deviceId}
                     </code>
                     <Button
@@ -303,7 +303,7 @@ export default function SessionDetailPage() {
                     >
                       <Copy
                         className={`h-4 w-4 ${
-                          copiedId === `device-${session.deviceId}` ? 'text-green-600' : ''
+                          copiedId === `device-${session.deviceId}` ? 'text-success' : ''
                         }`}
                       />
                     </Button>
@@ -385,7 +385,7 @@ export default function SessionDetailPage() {
                 key: 'createdAt',
                 label: '时间',
                 render: (log) => (
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(log.createdAt).toLocaleString('zh-CN')}
                   </span>
                 ),
@@ -403,7 +403,7 @@ export default function SessionDetailPage() {
                 key: 'level',
                 label: '级别',
                 render: (log) => (
-                  <Badge className={LOG_LEVEL_COLORS[log.level] || 'bg-gray-100'}>
+                  <Badge className={LOG_LEVEL_COLORS[log.level] || 'bg-muted'}>
                     {LOG_LEVEL_LABELS[log.level] || log.level}
                   </Badge>
                 ),
@@ -412,7 +412,7 @@ export default function SessionDetailPage() {
                 key: 'message',
                 label: '消息',
                 render: (log) => (
-                  <span className="text-sm text-gray-900 dark:text-gray-100 line-clamp-1">
+                  <span className="text-sm text-foreground line-clamp-1">
                     {log.message}
                   </span>
                 ),

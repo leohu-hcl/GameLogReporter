@@ -75,13 +75,13 @@ export default function DevicesPage() {
               title="设备总数"
               value={pagination.total}
               icon={Smartphone}
-              iconColor="text-blue-600"
+              iconColor="text-primary"
             />
             <StatCard
               title="活跃设备"
               value={devices.filter((d) => d.isActive).length}
               icon={Activity}
-              iconColor="text-green-600"
+              iconColor="text-success"
             />
             <StatCard
               title="平均会话数"
@@ -94,13 +94,13 @@ export default function DevicesPage() {
                   : 0
               }
               icon={BarChart3}
-              iconColor="text-purple-600"
+              iconColor="text-info"
             />
             <StatCard
               title="总日志数"
               value={devices.reduce((sum, d) => sum + (d.logCount || 0), 0)}
               icon={FileText}
-              iconColor="text-amber-600"
+              iconColor="text-warning"
             />
           </div>
 
@@ -120,31 +120,31 @@ export default function DevicesPage() {
                   description="还没有任何设备连接到系统"
                 />
               ) : (
-                <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="overflow-x-auto rounded-lg border border-border">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">设备型号</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">平台</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">OS版本</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">会话数</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">日志数</th>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">最后连接</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">状态</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">操作</th>
+                    <thead className="bg-muted/50">
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-3 text-left font-semibold text-foreground">设备型号</th>
+                        <th className="px-4 py-3 text-left font-semibold text-foreground">平台</th>
+                        <th className="px-4 py-3 text-left font-semibold text-foreground">OS版本</th>
+                        <th className="px-4 py-3 text-center font-semibold text-foreground">会话数</th>
+                        <th className="px-4 py-3 text-center font-semibold text-foreground">日志数</th>
+                        <th className="px-4 py-3 text-left font-semibold text-foreground">最后连接</th>
+                        <th className="px-4 py-3 text-center font-semibold text-foreground">状态</th>
+                        <th className="px-4 py-3 text-center font-semibold text-foreground">操作</th>
                       </tr>
                     </thead>
                     <tbody>
                       {devices.map((device) => (
-                        <tr key={device.deviceId} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                          <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{device.deviceModel}</td>
+                        <tr key={device.deviceId} className="border-b border-border hover:bg-muted/50 transition-colors">
+                          <td className="px-4 py-3 font-medium text-foreground">{device.deviceModel}</td>
                           <td className="px-4 py-3">
                             <Badge variant="outline">{device.platform}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{device.osVersion || '-'}</td>
-                          <td className="px-4 py-3 text-center text-gray-900 dark:text-gray-100">{device.sessionCount || 0}</td>
-                          <td className="px-4 py-3 text-center text-gray-900 dark:text-gray-100">{device.logCount || 0}</td>
-                          <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{device.osVersion || '-'}</td>
+                          <td className="px-4 py-3 text-center text-foreground">{device.sessionCount || 0}</td>
+                          <td className="px-4 py-3 text-center text-foreground">{device.logCount || 0}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">
                             {new Date(device.lastSeen).toLocaleString('zh-CN')}
                           </td>
                           <td className="px-4 py-3 text-center">

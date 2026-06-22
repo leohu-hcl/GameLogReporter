@@ -46,18 +46,18 @@ export const LOG_LEVEL_LABELS: Record<string, string> = {
 };
 
 export const LOG_LEVEL_COLORS: Record<string, string> = {
-  debug: 'bg-gray-100 text-gray-800',
-  info: 'bg-blue-100 text-blue-800',
-  warning: 'bg-yellow-100 text-yellow-800',
-  error: 'bg-red-100 text-red-800',
-  critical: 'bg-red-200 text-red-900',
+  debug: 'bg-muted text-muted-foreground border-border',
+  info: 'bg-info/15 text-info border-info/30',
+  warning: 'bg-warning/15 text-warning border-warning/30',
+  error: 'bg-destructive/15 text-destructive border-destructive/30',
+  critical: 'bg-destructive text-white border-destructive',
 };
 
 export const LOG_TYPE_COLORS: Record<string, string> = {
-  performance: 'bg-green-50 text-green-700 border-green-200',
-  user_action: 'bg-purple-50 text-purple-700 border-purple-200',
-  system_log: 'bg-orange-50 text-orange-700 border-orange-200',
-  custom: 'bg-gray-50 text-gray-700 border-gray-200',
+  performance: 'bg-success/12 text-success border-success/25',
+  user_action: 'bg-info/12 text-info border-info/25',
+  system_log: 'bg-warning/12 text-warning border-warning/25',
+  custom: 'bg-muted text-muted-foreground border-border',
 };
 
 export function LogsTable({ initialFilters }: LogTableProps) {
@@ -415,41 +415,41 @@ export function LogsTable({ initialFilters }: LogTableProps) {
               variant="outline"
               size="sm"
               onClick={handleClearFilters}
-              className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30 shadow-sm hover:shadow-md transition-all"
+              className="border-destructive/40 text-destructive transition-all hover:bg-destructive/10"
             >
               <X className="h-4 w-4" />
               清空
             </Button>
           )}
         </div>
-        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <div className="font-mono text-xs text-muted-foreground">
           共 {data?.total || 0} 条 • 页码 {data?.page || 1}/{data?.totalPages || 1}
         </div>
       </div>
 
       {/* 可折叠的筛选面板 */}
       {showFilters && (
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 space-y-4">
+        <div className="panel space-y-4 p-5">
           {/* 第一行：搜索、类型、级别 */}
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">搜索消息</label>
+              <label className="whitespace-nowrap font-mono text-xs uppercase tracking-wider text-muted-foreground">搜索消息</label>
               <Input
                 placeholder="关键字..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="h-9 w-64 shadow-sm"
+                className="h-9 w-64"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">日志类型</label>
+              <label className="whitespace-nowrap font-mono text-xs uppercase tracking-wider text-muted-foreground">日志类型</label>
               <Select
                 value={filters.logType || 'all'}
                 onValueChange={(value) => handleFilterChange('logType', value === 'all' ? undefined : value)}
               >
-                <SelectTrigger className="h-9 w-32 shadow-sm">
+                <SelectTrigger className="h-9 w-32">
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
@@ -464,12 +464,12 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">日志级别</label>
+              <label className="whitespace-nowrap font-mono text-xs uppercase tracking-wider text-muted-foreground">日志级别</label>
               <Select
                 value={filters.level || 'all'}
                 onValueChange={(value) => handleFilterChange('level', value === 'all' ? undefined : value)}
               >
-                <SelectTrigger className="h-9 w-32 shadow-sm">
+                <SelectTrigger className="h-9 w-32">
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
@@ -485,14 +485,14 @@ export function LogsTable({ initialFilters }: LogTableProps) {
           </div>
 
           {/* 第二行：时间筛选 */}
-          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
             <div className="flex items-center gap-2">
-              <div className="rounded-lg p-2 bg-gray-100 dark:bg-gray-800">
-                <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <div className="rounded-md bg-muted p-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
               </div>
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">时间范围</label>
+              <label className="whitespace-nowrap font-mono text-xs uppercase tracking-wider text-muted-foreground">时间范围</label>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Input
                 type="date"
@@ -501,10 +501,10 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                   setStartDate(e.target.value);
                   setQuickRangeType(null);
                 }}
-                className="h-9 w-40 shadow-sm"
+                className="h-9 w-40"
                 placeholder="开始日期"
               />
-              <span className="text-gray-500 dark:text-gray-400">至</span>
+              <span className="text-muted-foreground">至</span>
               <Input
                 type="date"
                 value={endDate}
@@ -512,21 +512,21 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                   setEndDate(e.target.value);
                   setQuickRangeType(null);
                 }}
-                className="h-9 w-40 shadow-sm"
+                className="h-9 w-40"
                 placeholder="结束日期"
               />
-              <Button 
-                onClick={handleDateRangeChange} 
-                size="sm" 
+              <Button
+                onClick={handleDateRangeChange}
+                size="sm"
                 variant="outline"
-                className="h-9 px-4 shadow-sm hover:shadow-md transition-all"
+                className="h-9 px-4"
               >
                 应用
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 border-l border-gray-300 dark:border-gray-600 pl-3">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">快捷选择:</span>
+            <div className="flex items-center gap-2 border-l border-border pl-3">
+              <span className="font-mono text-xs text-muted-foreground">快捷选择:</span>
               <Button 
                 onClick={() => handleQuickDateRange('today')} 
                 size="sm" 
@@ -578,7 +578,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
               </Button>
             )}
             {(filters.startTime || filters.endTime) && (
-              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 ml-2">
+              <span className="ml-2 font-mono text-xs text-primary">
                 {filters.startTime && `从 ${format(new Date(filters.startTime), 'yyyy-MM-dd')}`}
                 {filters.startTime && filters.endTime && ' '}
                 {filters.endTime && `到 ${format(new Date(filters.endTime), 'yyyy-MM-dd')}`}
@@ -625,33 +625,33 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b-2 border-gray-200 dark:border-gray-700">
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">时间</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">类型</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">级别</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">会话ID</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">消息</th>
-                    <th className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">操作</th>
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">时间</th>
+                    <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">类型</th>
+                    <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">级别</th>
+                    <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">会话ID</th>
+                    <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">消息</th>
+                    <th className="px-4 py-3 text-center font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.items.map((log) => (
-                    <tr key={log.logId} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                      <td className="px-4 py-4 text-xs font-medium">
+                    <tr key={log.logId} className="border-b border-border/60 transition-colors hover:bg-muted/40">
+                      <td className="px-4 py-4 font-mono text-xs text-muted-foreground">
                         {new Date(log.createdAt).toLocaleString('zh-CN')}
                       </td>
                       <td className="px-4 py-4">
-                        <Badge variant="outline" className="shadow-sm">{LOG_TYPE_LABELS[log.logType] || log.logType}</Badge>
+                        <Badge variant="outline">{LOG_TYPE_LABELS[log.logType] || log.logType}</Badge>
                       </td>
                       <td className="px-4 py-4">
-                        <Badge className={`${LOG_LEVEL_COLORS[log.level] || 'bg-gray-100'} shadow-sm`}>
+                        <Badge className={`${LOG_LEVEL_COLORS[log.level] || 'bg-muted'} border`}>
                           {LOG_LEVEL_LABELS[log.level] || log.level}
                         </Badge>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-1">
                           <button
-                            className="text-xs font-mono cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium"
+                            className="cursor-pointer font-mono text-xs font-medium text-primary hover:underline"
                             onClick={() => router.push(`/sessions/${log.sessionId}`)}
                             title="查看会话详情"
                           >
@@ -664,7 +664,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                             onClick={() => handleCopySessionId(log.sessionId)}
                             title={copiedId === log.sessionId ? '已复制!' : '复制会话ID'}
                           >
-                            <Copy className={`h-3 w-3 ${copiedId === log.sessionId ? 'text-emerald-600' : ''}`} />
+                            <Copy className={`h-3 w-3 ${copiedId === log.sessionId ? 'text-success' : ''}`} />
                           </Button>
                         </div>
                       </td>
@@ -714,18 +714,18 @@ export function LogsTable({ initialFilters }: LogTableProps) {
             <div className="mt-4 space-y-4 overflow-y-auto flex-1 pr-4">
               {/* 基本信息 */}
               <div>
-                <h3 className="font-semibold mb-2 text-sm">基本信息</h3>
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">基本信息</h3>
+                <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-gray-500">日志ID</span>
-                    <p className="font-mono text-xs mt-1 break-all">{selectedLog.logId}</p>
+                    <span className="text-muted-foreground">日志ID</span>
+                    <p className="mt-1 break-all font-mono text-xs">{selectedLog.logId}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">会话ID</span>
-                    <p className="font-mono text-xs mt-1 break-all">{selectedLog.sessionId}</p>
+                    <span className="text-muted-foreground">会话ID</span>
+                    <p className="mt-1 break-all font-mono text-xs">{selectedLog.sessionId}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">日志类型</span>
+                    <span className="text-muted-foreground">日志类型</span>
                     <p className="mt-1">
                       <Badge variant="outline" className="text-xs">
                         {LOG_TYPE_LABELS[selectedLog.logType] || selectedLog.logType}
@@ -733,9 +733,9 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">日志级别</span>
+                    <span className="text-muted-foreground">日志级别</span>
                     <p className="mt-1">
-                      <Badge className={`${LOG_LEVEL_COLORS[selectedLog.level] || 'bg-gray-100'} text-xs`}>
+                      <Badge className={`${LOG_LEVEL_COLORS[selectedLog.level] || 'bg-muted'} border text-xs`}>
                         {LOG_LEVEL_LABELS[selectedLog.level] || selectedLog.level}
                       </Badge>
                     </p>
@@ -745,8 +745,8 @@ export function LogsTable({ initialFilters }: LogTableProps) {
 
               {/* 消息 */}
               <div>
-                <h3 className="font-semibold mb-2 text-sm">消息</h3>
-                <p className="text-xs whitespace-pre-wrap rounded bg-gray-50 p-2 max-h-48 overflow-y-auto">
+                <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">消息</h3>
+                <p className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/50 p-3 text-xs">
                   {selectedLog.message}
                 </p>
               </div>
@@ -754,15 +754,15 @@ export function LogsTable({ initialFilters }: LogTableProps) {
               {/* 堆栈跟踪 */}
               {selectedLog.stackTrace && (
                 <div>
-                  <h3 className="font-semibold mb-2 text-sm">堆栈跟踪</h3>
-                  <pre className="text-xs overflow-x-auto rounded bg-gray-50 p-2 text-gray-700 max-h-60 overflow-y-auto">
+                  <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">堆栈跟踪</h3>
+                  <pre className="max-h-60 overflow-x-auto overflow-y-auto rounded-md border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
                     {selectedLog.stackTrace}
                   </pre>
                 </div>
               )}
 
               {/* 操作按钮 */}
-              <div className="flex gap-2 pt-4 border-t sticky bottom-0 bg-white">
+              <div className="sticky bottom-0 flex gap-2 border-t border-border bg-card pt-4">
                 <Button
                   onClick={() => router.push(`/logs/${selectedLog._id}`)}
                   className="flex-1 h-8 text-sm"

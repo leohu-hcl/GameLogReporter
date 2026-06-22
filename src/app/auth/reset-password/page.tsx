@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">重置密码</CardTitle>
@@ -94,8 +94,8 @@ export default function ResetPasswordPage() {
           )}
 
           {success && (
-            <Alert className="mb-6 border-green-200 bg-green-50">
-              <AlertDescription className="text-green-800">{success}</AlertDescription>
+            <Alert className="mb-6 border-success/30 bg-success/10">
+              <AlertDescription className="text-success">{success}</AlertDescription>
             </Alert>
           )}
 

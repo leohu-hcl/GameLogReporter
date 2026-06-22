@@ -3,12 +3,12 @@
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
 import { PageHeader } from '@/components/common/PageHeader';
-import { EmptyState } from '@/components/common/EmptyState';
 import { Shield } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SystemSettings } from '@/components/settings/SystemSettings';
 import { ThemeSettings } from '@/components/settings/ThemeSettings';
 import { GeneralSettings } from '@/components/settings/GeneralSettings';
+import { SecuritySettings } from '@/components/settings/SecuritySettings';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -25,10 +25,10 @@ export default function SettingsPage() {
           <PageHeader title="设置" description="管理系统配置和偏好设置" />
 
           <Tabs defaultValue={isAdmin ? 'system' : 'general'} className="w-full">
-            <TabsList>
+            <TabsList className="w-full overflow-x-auto whitespace-nowrap">
               {isAdmin && <TabsTrigger value="system">系统设置</TabsTrigger>}
               <TabsTrigger value="general">通用设置</TabsTrigger>
-              <TabsTrigger value="appearance">外观</TabsTrigger>
+              <TabsTrigger value="appearance">外观设置</TabsTrigger>
               <TabsTrigger value="security">安全设置</TabsTrigger>
             </TabsList>
 
@@ -51,11 +51,7 @@ export default function SettingsPage() {
 
             {/* 安全设置 */}
             <TabsContent value="security" className="mt-6">
-              <EmptyState
-                icon={Shield}
-                title="安全设置功能开发中..."
-                description="即将提供更多安全相关配置"
-              />
+              <SecuritySettings />
             </TabsContent>
           </Tabs>
         </div>

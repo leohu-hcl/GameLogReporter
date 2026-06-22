@@ -66,15 +66,15 @@ export function LogDetail({ logId }: LogDetailProps) {
         </Button>
 
         <div className="flex items-center justify-center min-h-96">
-          <Card className="w-full max-w-md border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20">
+          <Card className="w-full max-w-md border-destructive/30 bg-destructive/10">
             <CardHeader>
-              <CardTitle className="text-red-800 dark:text-red-400">日志不存在</CardTitle>
-              <CardDescription className="text-red-600 dark:text-red-400">
+              <CardTitle className="text-destructive">日志不存在</CardTitle>
+              <CardDescription className="text-destructive">
                 {error || '您要查看的日志已不存在或已被删除'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded bg-red-100 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-400">
+              <div className="rounded bg-destructive/10 p-3 text-sm text-destructive">
                 <p className="font-medium mb-1">可能的原因：</p>
                 <ul className="list-inside list-disc space-y-1 text-xs">
                   <li>日志ID 输入错误</li>
@@ -85,9 +85,9 @@ export function LogDetail({ logId }: LogDetailProps) {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   <span className="font-medium">日志ID：</span>
-                  <code className="ml-2 inline-block bg-gray-200 px-2 py-1 rounded text-xs font-mono">
+                  <code className="ml-2 inline-block bg-muted px-2 py-1 rounded text-xs font-mono">
                     {logId}
                   </code>
                 </p>
@@ -118,25 +118,25 @@ export function LogDetail({ logId }: LogDetailProps) {
 
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
-      debug: 'bg-gray-100 text-gray-800',
-      info: 'bg-blue-100 text-blue-800',
-      warning: 'bg-yellow-100 text-yellow-800',
-      error: 'bg-red-100 text-red-800',
-      critical: 'bg-purple-100 text-purple-800',
+      debug: 'bg-muted text-muted-foreground border border-border',
+      info: 'bg-info/15 text-info border border-info/30',
+      warning: 'bg-warning/15 text-warning border border-warning/30',
+      error: 'bg-destructive/15 text-destructive border border-destructive/30',
+      critical: 'bg-info/15 text-info border border-info/30',
     };
-    return colors[level] || 'bg-gray-100 text-gray-800';
+    return colors[level] || 'bg-muted text-muted-foreground border border-border';
   };
 
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      error: 'bg-red-100 text-red-800',
-      warning: 'bg-yellow-100 text-yellow-800',
-      info: 'bg-blue-100 text-blue-800',
-      performance: 'bg-green-100 text-green-800',
-      user_action: 'bg-indigo-100 text-indigo-800',
-      custom: 'bg-gray-100 text-gray-800',
+      error: 'bg-destructive/15 text-destructive border border-destructive/30',
+      warning: 'bg-warning/15 text-warning border border-warning/30',
+      info: 'bg-info/15 text-info border border-info/30',
+      performance: 'bg-success/15 text-success border border-success/30',
+      user_action: 'bg-info/15 text-info border border-info/30',
+      custom: 'bg-muted text-muted-foreground border border-border',
     };
-    return colors[type] || 'bg-gray-100 text-gray-800';
+    return colors[type] || 'bg-muted text-muted-foreground border border-border';
   };
 
   const copyToClipboard = (text: string) => {
@@ -226,16 +226,16 @@ export function LogDetail({ logId }: LogDetailProps) {
           />
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">消息</h3>
-            <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 p-3 rounded break-all">
+            <h3 className="text-sm font-medium text-muted-foreground">消息</h3>
+            <p className="text-sm text-foreground bg-muted/50 p-3 rounded break-all">
               {log.message}
             </p>
           </div>
 
           {log.clientVersion && (
             <div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">客户端版本</h3>
-              <p className="text-sm text-gray-900 dark:text-gray-100">{log.clientVersion}</p>
+              <h3 className="text-sm font-medium text-muted-foreground">客户端版本</h3>
+              <p className="text-sm text-foreground">{log.clientVersion}</p>
             </div>
           )}
         </CardContent>
@@ -266,7 +266,7 @@ export function LogDetail({ logId }: LogDetailProps) {
             <CardTitle>堆栈跟踪</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-x-auto text-xs text-gray-900 dark:text-gray-100">
+            <pre className="bg-muted/50 border border-border p-4 rounded overflow-x-auto text-xs text-foreground">
               {log.stackTrace}
             </pre>
           </CardContent>
@@ -280,7 +280,7 @@ export function LogDetail({ logId }: LogDetailProps) {
             <CardTitle>元数据</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded overflow-x-auto text-xs text-gray-900 dark:text-gray-100">
+            <pre className="bg-muted/50 border border-border p-4 rounded overflow-x-auto text-xs text-foreground">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
           </CardContent>

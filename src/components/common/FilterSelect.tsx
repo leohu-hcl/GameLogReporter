@@ -33,7 +33,7 @@ export function FilterSelect({
 }: FilterSelectProps) {
   return (
     <div className="flex items-center gap-2">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+      <label className="whitespace-nowrap font-mono text-xs uppercase tracking-wider text-muted-foreground">
         {label}
       </label>
       <Select value={value} onValueChange={onChange}>

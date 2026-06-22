@@ -148,13 +148,13 @@ export function LogDownloadDialog({
                 <span>不包含堆栈</span>
               </label>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {description}
             </p>
           </div>
 
           {/* 预览信息 */}
-          <div className="rounded bg-blue-50 dark:bg-blue-900/20 p-3 text-xs text-blue-700 dark:text-blue-400">
+          <div className="rounded bg-primary/10 p-3 text-xs text-primary">
             <p className="font-medium mb-1">📊 导出信息</p>
             <p>• 格式：{exportFormat === 'json' ? 'JSON' : '纯文本'}</p>
             <p>• 排序：{sortOrder === 'asc' ? '升序' : '降序'}</p>

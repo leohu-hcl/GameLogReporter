@@ -79,15 +79,15 @@ export default function DeviceDetailPage() {
             </Button>
 
             <div className="flex items-center justify-center min-h-96">
-              <Card className="w-full max-w-md border-red-200 bg-red-50">
+              <Card className="w-full max-w-md border-destructive/30 bg-destructive/10">
                 <CardHeader>
-                  <CardTitle className="text-red-800">设备不存在</CardTitle>
-                  <CardDescription className="text-red-600">
+                  <CardTitle className="text-destructive">设备不存在</CardTitle>
+                  <CardDescription className="text-destructive">
                     {error?.message || '您要查看的设备已不存在或已被删除'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="rounded bg-red-100 p-3 text-sm text-red-700">
+                  <div className="rounded bg-destructive/10 p-3 text-sm text-destructive">
                     <p className="font-medium mb-1">可能的原因：</p>
                     <ul className="list-inside list-disc space-y-1 text-xs">
                       <li>设备ID 输入错误</li>
@@ -98,9 +98,9 @@ export default function DeviceDetailPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       <span className="font-medium">设备ID：</span>
-                      <code className="ml-2 inline-block bg-gray-200 px-2 py-1 rounded text-xs font-mono">
+                      <code className="ml-2 inline-block bg-muted px-2 py-1 rounded text-xs font-mono">
                         {deviceId}
                       </code>
                     </p>
@@ -161,7 +161,7 @@ export default function DeviceDetailPage() {
               {
                 label: '设备ID',
                 value: (
-                  <code className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded break-all">
+                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded break-all">
                     {device.deviceId}
                   </code>
                 ),
@@ -196,20 +196,20 @@ export default function DeviceDetailPage() {
               title="运行天数"
               value={uptimeDays}
               icon={Activity}
-              iconColor="text-blue-600"
+              iconColor="text-primary"
               description="天"
             />
             <StatCard
               title="会话总数"
               value={pagination.total}
               icon={BarChart3}
-              iconColor="text-purple-600"
+              iconColor="text-info"
             />
             <StatCard
               title="总日志数"
               value={sessions.reduce((sum, s) => sum + (s.logCount || 0), 0)}
               icon={FileText}
-              iconColor="text-amber-600"
+              iconColor="text-warning"
             />
           </div>
 
@@ -242,7 +242,7 @@ export default function DeviceDetailPage() {
                 label: '会话ID',
                 render: (session) => (
                   <button
-                    className="text-blue-600 dark:text-blue-400 hover:underline font-mono text-xs"
+                    className="text-primary hover:underline font-mono text-xs"
                     onClick={() => router.push(`/sessions/${session.sessionId}`)}
                     title="查看会话详情"
                   >
@@ -254,7 +254,7 @@ export default function DeviceDetailPage() {
                 key: 'startTime',
                 label: '开始时间',
                 render: (session) => (
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(session.startTime).toLocaleString('zh-CN')}
                   </span>
                 ),
@@ -282,7 +282,7 @@ export default function DeviceDetailPage() {
                   session.errorCount && session.errorCount > 0 ? (
                     <Badge variant="destructive">{session.errorCount}</Badge>
                   ) : (
-                    <span className="text-gray-400">0</span>
+                    <span className="text-muted-foreground">0</span>
                   ),
               },
               {

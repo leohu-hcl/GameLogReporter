@@ -45,19 +45,19 @@ export function DataTable<T>({
       <CardContent>
         {data.length === 0 ? (
           emptyState || (
-            <div className="flex items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-center py-12 text-muted-foreground">
               <p>暂无数据</p>
             </div>
           )
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr className="border-b border-gray-200 dark:border-gray-700">
+              <thead className="bg-muted/50">
+                <tr className="border-b border-border">
                   {columns.map((column) => (
                     <th
                       key={column.key}
-                      className={`px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 ${
+                      className={`px-4 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground ${
                         column.align === 'center'
                           ? 'text-center'
                           : column.align === 'right'
@@ -74,7 +74,7 @@ export function DataTable<T>({
                 {data.map((item) => (
                   <tr
                     key={keyExtractor(item)}
-                    className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/40"
                   >
                     {columns.map((column) => (
                       <td

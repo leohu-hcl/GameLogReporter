@@ -20,20 +20,31 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="inline-flex rounded-full bg-gray-200 dark:bg-gray-800 p-4 mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-400 border-t-transparent"></div>
+          <div className="mb-4 inline-flex rounded-md border border-border bg-card p-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary"></div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">加载中...</p>
+          <p className="eyebrow">加载中…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <LoginForm />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      {/* atmospheric accent glows */}
+      <div
+        className="pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full opacity-30 blur-3xl"
+        style={{ background: 'var(--primary)' }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full opacity-20 blur-3xl"
+        style={{ background: 'var(--info)' }}
+      />
+      <div className="relative z-10 w-full max-w-md animate-rise">
+        <LoginForm />
+      </div>
     </div>
   );
 }

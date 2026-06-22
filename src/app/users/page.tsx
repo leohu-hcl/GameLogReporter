@@ -117,9 +117,9 @@ export default function UsersPage() {
 
   const getRoleBadge = (role: string) => {
     const roleColors: Record<string, string> = {
-      admin: 'bg-red-100 text-red-800',
-      editor: 'bg-blue-100 text-blue-800',
-      viewer: 'bg-gray-100 text-gray-800',
+      admin: 'bg-destructive/15 text-destructive border border-destructive/30',
+      editor: 'bg-info/15 text-info border border-info/30',
+      viewer: 'bg-muted text-muted-foreground border border-border',
     };
     const roleLabels: Record<string, string> = {
       admin: '管理员',
@@ -206,7 +206,7 @@ export default function UsersPage() {
                 key: 'username',
                 label: '用户名',
                 render: (user) => (
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <span className="text-sm font-medium text-foreground">
                     {user.username}
                   </span>
                 ),
@@ -215,7 +215,7 @@ export default function UsersPage() {
                 key: 'email',
                 label: '邮箱',
                 render: (user) => (
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     {user.email}
                   </span>
                 ),
@@ -238,7 +238,7 @@ export default function UsersPage() {
                 key: 'lastLogin',
                 label: '最后登录',
                 render: (user) => (
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : '-'}
                   </span>
                 ),
@@ -260,7 +260,7 @@ export default function UsersPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(user)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      className="text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

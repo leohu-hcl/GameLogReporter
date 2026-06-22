@@ -41,18 +41,18 @@ export function DeleteDialog({
 
         {/* 用户信息 */}
         {user && (
-          <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-3 space-y-2 text-sm">
+          <div className="rounded-lg bg-muted/50 p-3 space-y-2 text-sm">
             <div>
-              <span className="text-gray-600 dark:text-gray-400">用户名：</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{user.username}</span>
+              <span className="text-muted-foreground">用户名：</span>
+              <span className="font-medium text-foreground">{user.username}</span>
             </div>
             <div>
-              <span className="text-gray-600 dark:text-gray-400">邮箱：</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{user.email}</span>
+              <span className="text-muted-foreground">邮箱：</span>
+              <span className="font-medium text-foreground">{user.email}</span>
             </div>
             <div>
-              <span className="text-gray-600 dark:text-gray-400">角色：</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">
+              <span className="text-muted-foreground">角色：</span>
+              <span className="font-medium text-foreground">
                 {user.role === 'admin'
                   ? '管理员'
                   : user.role === 'editor'
@@ -63,7 +63,7 @@ export function DeleteDialog({
           </div>
         )}
 
-        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400">
+        <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
           <p className="font-medium mb-1">⚠️ 注意：</p>
           <ul className="list-inside list-disc space-y-1 text-xs">
             <li>此操作不可撤销</li>
@@ -83,7 +83,7 @@ export function DeleteDialog({
           <Button
             onClick={onConfirm}
             disabled={isLoading}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-destructive hover:bg-destructive/90"
           >
             {isLoading ? '删除中...' : '确认删除'}
           </Button>

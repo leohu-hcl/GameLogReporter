@@ -25,22 +25,20 @@ export function InfoCard({ title, items, columns = 3 }: InfoCardProps) {
   };
 
   return (
-    <Card>
+    <Card className="py-0">
       {title && (
-        <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="border-b border-border px-6 py-4">
+          <h3 className="font-display text-base font-semibold tracking-wide text-foreground">
             {title}
           </h3>
         </div>
       )}
-      <CardContent className={title ? 'pt-6' : 'py-6'}>
-        <div className={`grid grid-cols-1 ${gridCols[columns]} gap-6`}>
+      <CardContent className={title ? 'py-6' : 'py-6'}>
+        <div className={`grid grid-cols-1 ${gridCols[columns]} gap-x-6 gap-y-5`}>
           {items.map((item, index) => (
-            <div key={index}>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                {item.label}
-              </p>
-              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <div key={index} className="min-w-0">
+              <p className="eyebrow mb-1.5">{item.label}</p>
+              <div className="break-words text-sm font-medium text-foreground">
                 {item.value}
               </div>
             </div>

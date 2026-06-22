@@ -24,8 +24,8 @@ export function GeneralSettings() {
       <Card>
         <CardHeader className="space-y-3 pb-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-gray-100 dark:bg-gray-800 p-2.5">
-              <List className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            <div className="rounded-lg bg-muted p-2.5">
+              <List className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <CardTitle className="text-2xl">通用设置</CardTitle>
@@ -38,17 +38,17 @@ export function GeneralSettings() {
 
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-semibold text-foreground">
               分页条数配置
             </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               可分别设置不同列表的每页显示条数
             </p>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {sections.map((section) => (
                 <div key={section.key} className="space-y-2">
-                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  <label className="text-xs font-medium text-muted-foreground">
                     {section.label}
                   </label>
                   <Select
@@ -72,16 +72,16 @@ export function GeneralSettings() {
           </div>
 
           {/* 提示信息 */}
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+          <div className="rounded-xl border border-primary/30 bg-primary/10 p-4">
             <div className="flex gap-3">
-              <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Info className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-200">
+                <h4 className="font-semibold text-sm text-primary">
                   💡 小贴士
                 </h4>
-                <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
+                <p className="mt-1 text-xs text-primary">
                   设置会自动保存并即时生效，对应列表会从第一页重新加载。
                 </p>
               </div>

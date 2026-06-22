@@ -32,7 +32,7 @@ export function Pagination({
   return (
     <div className="mt-4 space-y-3">
       {showPageInfo && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-muted-foreground">
           第 {currentPage} / {totalPages} 页，每页 {limit} 条，共 {total} 条
         </div>
       )}
@@ -100,7 +100,7 @@ export function Pagination({
                   {page}
                 </Button>
               ) : (
-                <span key={idx} className="px-2 text-gray-500 dark:text-gray-400">
+                <span key={idx} className="px-2 text-muted-foreground">
                   ...
                 </span>
               )
@@ -132,8 +132,8 @@ export function Pagination({
 
         {/* 跳转输入框 */}
         <div className="flex items-center gap-2 ml-auto whitespace-nowrap">
-          <span className="text-xs text-gray-600 dark:text-gray-400">跳转:</span>
-          <span className="text-xs text-gray-600 dark:text-gray-400">页码</span>
+          <span className="text-xs text-muted-foreground">跳转:</span>
+          <span className="text-xs text-muted-foreground">页码</span>
           <Input
             type="number"
             min="1"

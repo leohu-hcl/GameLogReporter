@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, FileText, Bell, Users, Settings, Smartphone, X } from 'lucide-react';
+import { BarChart3, FileText, Bell, Users, Settings, Smartphone, X, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -20,46 +20,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { user } = useAuth();
 
   const menuItems = [
-    {
-      title: '仪表板',
-      href: '/dashboard',
-      icon: BarChart3,
-      badge: null,
-    },
-    {
-      title: '日志',
-      href: '/logs',
-      icon: FileText,
-      badge: null,
-    },
-    {
-      title: '设备',
-      href: '/devices',
-      icon: Smartphone,
-      badge: null,
-    },
-    {
-      title: '告警',
-      href: '/alerts',
-      icon: Bell,
-      badge: null,
-    },
+    { title: '仪表板', code: 'OVERVIEW', href: '/dashboard', icon: BarChart3 },
+    { title: '日志', code: 'LOGS', href: '/logs', icon: FileText },
+    { title: '设备', code: 'DEVICES', href: '/devices', icon: Smartphone },
+    { title: '告警', code: 'ALERTS', href: '/alerts', icon: Bell },
     ...(user?.role === 'admin'
-      ? [
-          {
-            title: '用户管理',
-            href: '/users',
-            icon: Users,
-            badge: null,
-          },
-        ]
+      ? [{ title: '用户管理', code: 'USERS', href: '/users', icon: Users }]
       : []),
-    {
-      title: '设置',
-      href: '/settings',
-      icon: Settings,
-      badge: null,
-    },
+    { title: '设置', code: 'CONFIG', href: '/settings', icon: Settings },
   ];
 
   const isActive = (href: string) => {
@@ -71,7 +39,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* 移动端背景遮罩 */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
           onClick={onClose}
         />
       )}
@@ -79,74 +47,90 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* 侧边栏 */}
       <aside
         className={cn(
-          'fixed md:relative top-0 left-0 w-64 h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 z-50 transition-transform duration-300 md:translate-x-0 flex flex-col border-r border-gray-200 dark:border-gray-800',
+          'fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300 md:relative md:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* 侧边栏头部 */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2 group">
-            <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
-              <BarChart3 className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+        <div className="flex items-center justify-between border-b border-sidebar-border px-5 py-5">
+          <Link href="/dashboard" className="group flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground glow-primary">
+              <Terminal className="h-5 w-5" strokeWidth={2.5} />
             </div>
-            <span className="text-xl font-semibold text-gray-900 dark:text-gray-100">GameLog</span>
+            <div className="flex flex-col leading-tight">
+              <span className="font-display text-base font-bold tracking-wide text-foreground">
+                GAMELOG
+              </span>
+              <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">
+                Reporter
+              </span>
+            </div>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="md:hidden text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden">
             <X className="h-5 w-5" />
           </Button>
         </div>
 
         {/* 菜单项 */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+          <p className="eyebrow px-3 pb-2">导航</p>
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-              >
-                <Button
-                  variant="ghost"
+              <Link key={item.href} href={item.href} onClick={onClose}>
+                <div
                   className={cn(
-                    'w-full justify-start gap-3 text-gray-600 dark:text-gray-300',
+                    'group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all',
                     active
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-sidebar-accent text-foreground'
+                      : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground'
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="flex-1 text-left font-medium">{item.title}</span>
-                  {item.badge && (
-                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                      {item.badge}
-                    </span>
-                  )}
-                </Button>
+                  {/* active indicator bar */}
+                  <span
+                    className={cn(
+                      'absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary transition-all',
+                      active ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'
+                    )}
+                  />
+                  <Icon
+                    className={cn('h-[18px] w-[18px] shrink-0', active && 'text-primary')}
+                    strokeWidth={active ? 2.4 : 2}
+                  />
+                  <span className="flex-1 font-medium">{item.title}</span>
+                  <span
+                    className={cn(
+                      'font-mono text-[0.6rem] tracking-wider transition-opacity',
+                      active
+                        ? 'text-primary/70'
+                        : 'text-muted-foreground/40 group-hover:text-muted-foreground/70'
+                    )}
+                  >
+                    {item.code}
+                  </span>
+                </div>
               </Link>
             );
           })}
         </nav>
 
         {/* 用户信息 */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-            <div className="bg-gray-200 dark:bg-gray-700 rounded-full p-2">
-              <Users className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+        <div className="border-t border-sidebar-border p-3">
+          <div className="flex items-center gap-3 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
+              <span className="font-display text-sm font-bold">
+                {user?.username?.[0]?.toUpperCase() ?? 'U'}
+              </span>
             </div>
-            <div className="flex-1 text-sm">
-              <p className="font-medium text-gray-900 dark:text-white">{user?.username}</p>
-              <p className="text-gray-500 dark:text-gray-400 text-xs truncate">
+            <div className="min-w-0 flex-1 text-sm">
+              <p className="truncate font-semibold text-foreground">{user?.username}</p>
+              <p className="truncate font-mono text-[0.65rem] text-muted-foreground">
                 {user?.email}
               </p>
             </div>
+            <span className="pulse-dot inline-block h-2 w-2 shrink-0 rounded-full bg-success text-success" />
           </div>
         </div>
       </aside>

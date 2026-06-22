@@ -6,14 +6,16 @@
  */
 export function LoadingSpinner() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="space-y-4 text-center">
-        <div className="flex justify-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse"></div>
-          <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse [animation-delay:0.2s]"></div>
-          <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse [animation-delay:0.4s]"></div>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="space-y-5 text-center">
+        <div className="flex items-end justify-center gap-1.5">
+          <div className="h-6 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:0s]" />
+          <div className="h-9 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:0.15s]" />
+          <div className="h-5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:0.3s]" />
+          <div className="h-8 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:0.45s]" />
+          <div className="h-4 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:0.6s]" />
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">加载中...</p>
+        <p className="eyebrow">加载中…</p>
       </div>
     </div>
   );
