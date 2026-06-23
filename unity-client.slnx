@@ -1,3 +1,5 @@
 ﻿<Solution>
+  <Project Path="GameLogReporter.csproj" />
+  <Project Path="GameLogReporter.Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
 </Solution>

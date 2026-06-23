@@ -6,12 +6,16 @@ using System.Collections;
 namespace GameLogReporter
 {
     /// <summary>
-    /// 日志上报器 - 单例模式，统一日志上报入口
+    /// 日志上报器 - 单例模式，统一日志上报入口。
+    /// 通过 [RuntimeInitializeOnLoadMethod] 自启动，无需挂载到场景。
     /// </summary>
     public class LogReporter : MonoBehaviour
     {
         private static LogReporter _instance;
         private static readonly object _lock = new object();
+
+        // 代码侧覆盖配置（Configure 在 Bootstrap 前调用时暂存于此，优先级最高）
+        private static LogReporterConfig _overrideConfig;
 
         public static LogReporter Instance
         {
@@ -33,21 +37,65 @@ namespace GameLogReporter
             }
         }
 
-        [Header("Configuration")]
-        [SerializeField] private string apiBaseUrl = "http://localhost:3000/api";
-        [SerializeField] private string clientVersion = "1.0.0";
-        [SerializeField] private float batchInterval = 5f; // 批量上报间隔（秒）
-        [SerializeField] private int batchSize = 50; // 批量上报大小
-        [SerializeField] private bool enablePerformanceMonitoring = true;
-        [SerializeField] private bool enableUserActionTracking = true;
-        [SerializeField] private float performanceCheckInterval = 1f; // 性能检查间隔（秒）
+        /// <summary>
+        /// 自启动入口 - 进入运行时在首个场景加载前自动创建 LogReporter。
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Bootstrap()
+        {
+            if (_instance != null) return;
 
-        [Header("Deduplication")]
-        [SerializeField] private bool enableDeduplication = true; // 启用日志去重
-        [SerializeField] private float deduplicationWindow = 10f; // 去重时间窗口（秒）
+            GameObject go = new GameObject("LogReporter");
+            _instance = go.AddComponent<LogReporter>();
+            DontDestroyOnLoad(go);
+            // Awake 已在 AddComponent 时执行并完成 Initialize
+        }
 
-        [Header("SDK Logging")]
-        [SerializeField] private bool enableSdkLogging = true; // SDK自身是否打印日志（Debug.Log）
+        /// <summary>
+        /// 解析生效配置：代码覆盖 > Resources 资源 > 内置默认值。
+        /// </summary>
+        private static LogReporterConfig ResolveConfig()
+        {
+            if (_overrideConfig != null)
+            {
+                return _overrideConfig;
+            }
+
+            var fromResources = Resources.Load<LogReporterConfig>(LogReporterConfig.ResourceName);
+            if (fromResources != null)
+            {
+                // 克隆一份，避免运行时改动写回 Resources 资源
+                return fromResources.Clone();
+            }
+
+            return ScriptableObject.CreateInstance<LogReporterConfig>();
+        }
+
+        /// <summary>
+        /// 代码侧配置。可在自启动前（如自定义 [RuntimeInitializeOnLoadMethod(SubsystemRegistration)]）
+        /// 调用以设置 API 地址等；自启动后调用仅热更非网络字段。
+        /// </summary>
+        public static void Configure(Action<LogReporterConfig> mutate)
+        {
+            if (mutate == null) return;
+
+            if (_instance == null)
+            {
+                // 尚未自启动：基于默认/Resources 克隆出覆盖配置，Bootstrap 时采用
+                if (_overrideConfig == null)
+                {
+                    _overrideConfig = ResolveConfig();
+                }
+                mutate(_overrideConfig);
+            }
+            else
+            {
+                // 已自启动：对实例配置应用变更并热更可热更字段
+                _instance.ApplyConfigChange(mutate);
+            }
+        }
+
+        private LogReporterConfig _config;
 
         private NetworkManager _networkManager;
         private LogCollector _logCollector;
@@ -82,21 +130,24 @@ namespace GameLogReporter
 
         private void Initialize()
         {
-            // 初始化SDK日志管理器
-            _sdkLogger = new SdkLogger(enableSdkLogging);
+            // 解析配置（代码覆盖 > Resources > 默认值）
+            _config = ResolveConfig();
 
-            _networkManager = new NetworkManager($"{apiBaseUrl}/logs", _sdkLogger);
+            // 初始化SDK日志管理器
+            _sdkLogger = new SdkLogger(_config.enableSdkLogging);
+
+            _networkManager = new NetworkManager($"{_config.apiBaseUrl}/logs", _sdkLogger);
             _logCollector = new LogCollector(this);
-            _logCollector.Initialize(enablePerformanceMonitoring, enableUserActionTracking, performanceCheckInterval);
+            _logCollector.Initialize(_config.enablePerformanceMonitoring, _config.enableUserActionTracking, _config.performanceCheckInterval);
 
             // 初始化去重服务
-            if (enableDeduplication)
+            if (_config.enableDeduplication)
             {
-                _deduplicationService = new DeduplicationService(deduplicationWindow, _sdkLogger);
+                _deduplicationService = new DeduplicationService(_config.deduplicationWindow, _sdkLogger);
             }
 
             // 初始化会话管理器
-            _sessionManager = new SessionManager($"{apiBaseUrl}/sessions", _sdkLogger);
+            _sessionManager = new SessionManager($"{_config.apiBaseUrl}/sessions", _sdkLogger);
 
             // 初始化时向服务器请求会话ID
             StartCoroutine(RequestSessionId());
@@ -106,25 +157,44 @@ namespace GameLogReporter
             _sdkLogger.Info("LogReporter initialized");
         }
 
+        /// <summary>
+        /// 运行时应用配置变更 - 仅热更非网络字段；网络字段（apiBaseUrl）变更需在自启动前 Configure。
+        /// </summary>
+        private void ApplyConfigChange(Action<LogReporterConfig> mutate)
+        {
+            string prevUrl = _config.apiBaseUrl;
+            mutate(_config);
+
+            if (_config.apiBaseUrl != prevUrl)
+            {
+                _config.apiBaseUrl = prevUrl; // 回滚，避免与已建的 Network/Session 管理器不一致
+                _sdkLogger?.Warning("apiBaseUrl 变更需在自启动前调用 Configure，运行时修改已忽略", "LogReporter");
+            }
+
+            // 热更 SDK 日志开关
+            _sdkLogger?.UpdateConfig(_config.enableSdkLogging);
+        }
+
+
         private void Update()
         {
             if (!_isInitialized) return;
 
             // 清理过期的去重缓存
-            if (enableDeduplication)
+            if (_config.enableDeduplication)
             {
                 CleanupDeduplicationCache();
             }
 
             // 定时批量上报
-            if (Time.time - _lastBatchTime >= batchInterval)
+            if (Time.time - _lastBatchTime >= _config.batchInterval)
             {
                 FlushLogs();
                 _lastBatchTime = Time.time;
             }
 
             // 如果队列达到批量大小，立即上报
-            if (_logQueue.Count >= batchSize)
+            if (_logQueue.Count >= _config.batchSize)
             {
                 FlushLogs();
             }
@@ -143,7 +213,7 @@ namespace GameLogReporter
         private void OnApplicationQuit()
         {
             // 1. 上报所有去重缓存中的日志
-            if (enableDeduplication && _deduplicationService != null)
+            if (_config.enableDeduplication && _deduplicationService != null)
             {
                 var deduplicatedLogs = _deduplicationService.GetDeduplicatedLogs();
                 foreach (var logData in deduplicatedLogs)
@@ -175,7 +245,7 @@ namespace GameLogReporter
         {
             if (string.IsNullOrEmpty(logData.clientVersion))
             {
-                logData.clientVersion = clientVersion;
+                logData.clientVersion = _config.clientVersion;
             }
             logData.timestamp = DateTime.UtcNow;
 
@@ -185,7 +255,7 @@ namespace GameLogReporter
             }
 
             // 去重检查
-            if (enableDeduplication && ShouldDeduplicate(logData))
+            if (_config.enableDeduplication && ShouldDeduplicate(logData))
             {
                 return;
             }
@@ -231,7 +301,7 @@ namespace GameLogReporter
             if (_logQueue.Count == 0) return;
 
             List<LogData> logs = new List<LogData>();
-            while (_logQueue.Count > 0 && logs.Count < batchSize)
+            while (_logQueue.Count > 0 && logs.Count < _config.batchSize)
             {
                 logs.Add(_logQueue.Dequeue());
             }
