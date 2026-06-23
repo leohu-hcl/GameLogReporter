@@ -53,3 +53,7 @@ Thumbs.db
 # Other
 *.apk
 *.unitypackage
+
+# LogReporter 构建期生成的配置（不应进仓库）
+/Assets/Resources/LogReporterConfig.asset
+/Assets/Resources/LogReporterConfig.asset.meta
