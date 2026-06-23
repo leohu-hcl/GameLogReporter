@@ -144,7 +144,7 @@ namespace GameLogReporter
 
             _networkManager = new NetworkManager($"{_config.apiBaseUrl}/logs", _sdkLogger);
             _logCollector = new LogCollector(this);
-            _logCollector.Initialize(_config.enablePerformanceMonitoring, _config.enableUserActionTracking, _config.performanceCheckInterval);
+            _logCollector.Initialize();
 
             // 初始化去重服务
             if (_config.enableDeduplication)

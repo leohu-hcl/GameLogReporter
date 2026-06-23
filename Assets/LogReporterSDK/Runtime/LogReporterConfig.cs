@@ -33,16 +33,6 @@ namespace GameLogReporter
         [Tooltip("单批上报的日志条数上限")]
         public int batchSize = 50;
 
-        [Header("Collection")]
-        [Tooltip("启用性能监控（FPS / 内存）")]
-        public bool enablePerformanceMonitoring = true;
-
-        [Tooltip("启用用户行为追踪")]
-        public bool enableUserActionTracking = true;
-
-        [Tooltip("性能采集间隔（秒）")]
-        public float performanceCheckInterval = 1f;
-
         [Header("Deduplication")]
         [Tooltip("启用日志去重")]
         public bool enableDeduplication = true;

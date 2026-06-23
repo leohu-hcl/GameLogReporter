@@ -40,10 +40,10 @@
   - 窗口过期分支（`ShouldDeduplicate` 的 else）直接覆盖缓存，**未把累计 repeatCount 入队上报** → 计数清零丢失
   - 方向：窗口过期时先把旧的（带 count）入队再缓存新的
 
-- [ ] **#5 自动性能监控根本没运行 + `1f/Time.deltaTime` 可能为 Infinity**
+- [x] **#5 自动性能监控根本没运行 + `1f/Time.deltaTime` 可能为 Infinity**
   - `LogReporter.Update()` 从未调用 `_logCollector.Update()` → `enablePerformanceMonitoring` 形同虚设（只有 Tester 手动触发）
   - `CollectPerformanceData` 的 `1f/Time.deltaTime` 在 deltaTime=0 时为 Infinity
-  - 方向：在主 Update 调用 Collector.Update；FPS 计算加保护
+  - **已修（2026-06-23）**：关注点分离——性能/行为自动采集不属于日志 SDK 核心职责，且这些是死代码（Update/TrackUserAction 从没被调用）。直接**剥离** `LogCollector` 的自动采集（删 `Update`/`CollectPerformanceData`/`TrackUserAction` + 相关字段），`Initialize()` 改无参；`LogReporterConfig` 删 `enablePerformanceMonitoring`/`enableUserActionTracking`/`performanceCheckInterval`。两个 bug 随死代码删除而消失。保留 `LogReporter.ReportPerformance()`/`ReportUserAction()` 作手动上报便捷 API。
 
 - [ ] **#6 `OnApplicationQuit` 的"同步上报"是假的**
   - `SendLogsBatchSync` 实际仍是 `StartCoroutine`（异步）；OnApplicationQuit 返回后协程基本无机会执行完

@@ -64,9 +64,6 @@ LogReporter.Configure(o =>
 | `clientVersion` | `1.0.0` | 客户端版本号 |
 | `batchInterval` | `5` | 批量上报间隔（秒） |
 | `batchSize` | `50` | 单批上报条数上限 |
-| `enablePerformanceMonitoring` | `true` | 性能监控（FPS/内存） |
-| `enableUserActionTracking` | `true` | 用户行为追踪 |
-| `performanceCheckInterval` | `1` | 性能采集间隔（秒） |
 | `enableDeduplication` | `true` | 日志去重 |
 | `deduplicationWindow` | `10` | 去重时间窗口（秒） |
 | `enableSdkLogging` | `true` | SDK 自身是否打印到控制台 |
