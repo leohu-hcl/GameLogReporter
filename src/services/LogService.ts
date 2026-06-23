@@ -33,60 +33,8 @@ export interface GetLogsQuery {
 
 export async function createLog(data: CreateLogDto): Promise<ILog> {
   try {
-    // 转换数字类型的 logType 和 level
-    let convertedLogType = data.logType;
-    if (typeof data.logType === 'number') {
-      switch (data.logType) {
-        case 0: // ERROR - 系统错误
-          convertedLogType = LogType.SYSTEM_LOG;
-          break;
-        case 1: // WARNING - 系统警告
-          convertedLogType = LogType.SYSTEM_LOG;
-          break;
-        case 2: // INFO - 系统信息（调试日志）
-          convertedLogType = LogType.SYSTEM_LOG;
-          break;
-        case 3: // PERFORMANCE - 性能
-          convertedLogType = LogType.PERFORMANCE;
-          break;
-        case 4: // USER_ACTION - 用户操作
-          convertedLogType = LogType.USER_ACTION;
-          break;
-        case 5: // CUSTOM - 自定义
-          convertedLogType = LogType.CUSTOM;
-          break;
-        default:
-          convertedLogType = LogType.SYSTEM_LOG;
-      }
-    }
-
-    let convertedLevel = data.level;
-    if (typeof data.level === 'number') {
-      switch (data.level) {
-        case 0:
-          convertedLevel = LogLevel.DEBUG;
-          break;
-        case 1:
-          convertedLevel = LogLevel.INFO;
-          break;
-        case 2:
-          convertedLevel = LogLevel.WARNING;
-          break;
-        case 3:
-          convertedLevel = LogLevel.ERROR;
-          break;
-        case 4:
-          convertedLevel = LogLevel.CRITICAL;
-          break;
-        default:
-          convertedLevel = LogLevel.INFO;
-      }
-    }
-
     const logData = {
       ...data,
-      logType: convertedLogType as any,
-      level: convertedLevel as any,
       logId: uuidv4(),
       timestamp: data.timestamp ? (typeof data.timestamp === 'string' || typeof data.timestamp === 'number' ? new Date(data.timestamp) : data.timestamp) : new Date()
     };
@@ -106,70 +54,11 @@ export async function createLog(data: CreateLogDto): Promise<ILog> {
 
 export async function createLogsBatch(logs: CreateLogDto[]): Promise<{ created: number; failed: number }> {
   try {
-    // 转换数字类型的 logType 和 level 为字符串类型
-    const logDocuments = logs.map(data => {
-      // 如果 logType 是数字，则转换为对应的字符串值
-      let convertedLogType = data.logType;
-      if (typeof data.logType === 'number') {
-        // 客户端 logType: 0=ERROR, 1=WARNING, 2=INFO, 3=PERFORMANCE, 4=USER_ACTION, 5=CUSTOM
-        // 这些实际上应该映射到 LogType 枚举，INFO/WARNING/ERROR 这些是 level
-        // 根据数字 logType 的含义，将其转换为实际的日志类型
-        switch (data.logType) {
-          case 0: // ERROR - 系统错误
-            convertedLogType = LogType.SYSTEM_LOG;
-            break;
-          case 1: // WARNING - 系统警告
-            convertedLogType = LogType.SYSTEM_LOG;
-            break;
-          case 2: // INFO - 系统信息（调试日志）
-            convertedLogType = LogType.SYSTEM_LOG;
-            break;
-          case 3: // PERFORMANCE - 性能
-            convertedLogType = LogType.PERFORMANCE;
-            break;
-          case 4: // USER_ACTION - 用户操作
-            convertedLogType = LogType.USER_ACTION;
-            break;
-          case 5: // CUSTOM - 自定义
-            convertedLogType = LogType.CUSTOM;
-            break;
-          default:
-            convertedLogType = LogType.SYSTEM_LOG;
-        }
-      }
-      
-      // 如果 level 是数字，则转换为对应的字符串值
-      let convertedLevel = data.level;
-      if (typeof data.level === 'number') {
-        switch (data.level) {
-          case 0:
-            convertedLevel = LogLevel.DEBUG;
-            break;
-          case 1:
-            convertedLevel = LogLevel.INFO;
-            break;
-          case 2:
-            convertedLevel = LogLevel.WARNING;
-            break;
-          case 3:
-            convertedLevel = LogLevel.ERROR;
-            break;
-          case 4:
-            convertedLevel = LogLevel.CRITICAL;
-            break;
-          default:
-            convertedLevel = LogLevel.INFO;
-        }
-      }
-      
-      return {
-        ...data,
-        logType: convertedLogType as any,
-        level: convertedLevel as any,
-        logId: uuidv4(),
-        timestamp: data.timestamp ? (typeof data.timestamp === 'string' || typeof data.timestamp === 'number' ? new Date(data.timestamp) : data.timestamp) : new Date()
-      };
-    });
+    const logDocuments = logs.map(data => ({
+      ...data,
+      logId: uuidv4(),
+      timestamp: data.timestamp ? (typeof data.timestamp === 'string' || typeof data.timestamp === 'number' ? new Date(data.timestamp) : data.timestamp) : new Date()
+    }));
 
     const result = await Log.insertMany(logDocuments, { ordered: false });
     
