@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using UnityEngine;
 using System.Collections;
 
@@ -99,7 +100,12 @@ namespace GameLogReporter
 
         private NetworkManager _networkManager;
         private LogCollector _logCollector;
+        // 主线程独占：去重/限长/批量都只在主线程访问此队列
         private Queue<LogData> _logQueue = new Queue<LogData>();
+        // 线程安全入口：ReportLog 可能在后台线程被调用（Application.logMessageReceived），
+        // 先入此并发队列，主线程 Update 的 DrainIncoming 再搬到 _logQueue。
+        // ponytail: 单消费者（主线程）假设——只有 DrainIncoming 出队，勿在他处消费
+        private readonly ConcurrentQueue<LogData> _incomingQueue = new ConcurrentQueue<LogData>();
         private float _lastBatchTime;
         private bool _isInitialized = false;
 
@@ -180,6 +186,9 @@ namespace GameLogReporter
         {
             if (!_isInitialized) return;
 
+            // 先把后台线程投递的日志搬进主线程队列（去重/限长在此发生）
+            DrainIncoming();
+
             // 清理过期的去重缓存
             if (_config.enableDeduplication)
             {
@@ -212,6 +221,9 @@ namespace GameLogReporter
 
         private void OnApplicationQuit()
         {
+            // 0. 先 drain 入口队列，确保后台线程残留日志也纳入最后一批
+            DrainIncoming();
+
             // 1. 上报所有去重缓存中的日志
             if (_config.enableDeduplication && _deduplicationService != null)
             {
@@ -239,7 +251,8 @@ namespace GameLogReporter
         }
 
         /// <summary>
-        /// 上报单条日志
+        /// 上报单条日志。可在任意线程调用（Unity 后台线程日志会经此进入）——
+        /// 仅做线程安全的入队，去重/限长/批量统一由主线程的 DrainIncoming 处理。
         /// </summary>
         public void ReportLog(LogData logData)
         {
@@ -254,20 +267,33 @@ namespace GameLogReporter
                 logData.sessionId = _logCollector?.GetSessionId();
             }
 
-            // 去重检查
-            if (_config.enableDeduplication && ShouldDeduplicate(logData))
-            {
-                return;
-            }
+            // 唯一动作：入并发队列（任意线程安全）。不触碰 Time.time / _logQueue。
+            _incomingQueue.Enqueue(logData);
+        }
 
-            // 检查日志队列是否超出最大限制
-            if (_logQueue.Count >= MAX_LOG_QUEUE_SIZE)
+        /// <summary>
+        /// 主线程消费入口队列：去重 + 限长 + 入 _logQueue。
+        /// 仅由主线程（Update / OnApplicationQuit）调用。
+        /// </summary>
+        private void DrainIncoming()
+        {
+            while (_incomingQueue.TryDequeue(out var logData))
             {
-                _sdkLogger?.Warning($"Log queue reached maximum size ({MAX_LOG_QUEUE_SIZE}), dropping oldest log");
-                _logQueue.Dequeue(); // 移除最旧的日志
-            }
+                // 去重检查（DeduplicationService 用 Time.time，主线程安全）
+                if (_config.enableDeduplication && ShouldDeduplicate(logData))
+                {
+                    continue;
+                }
 
-            _logQueue.Enqueue(logData);
+                // 检查日志队列是否超出最大限制
+                if (_logQueue.Count >= MAX_LOG_QUEUE_SIZE)
+                {
+                    _sdkLogger?.Warning($"Log queue reached maximum size ({MAX_LOG_QUEUE_SIZE}), dropping oldest log");
+                    _logQueue.Dequeue(); // 移除最旧的日志
+                }
+
+                _logQueue.Enqueue(logData);
+            }
         }
 
         /// <summary>

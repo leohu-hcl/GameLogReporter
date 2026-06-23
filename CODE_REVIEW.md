@@ -22,11 +22,14 @@
   - **已修（2026-06-23）**：`GameLogType`/`LogLevel` 标 `[EnumMember(Value="...")]` + `StringEnumConverter`，发后端约定的小写字符串（`performance`/`user_action`/`error`…）。后端 `LogService` 的数字兼容映射（本就有 logType 错位 bug）已删除。
   - 连带修复：`SessionManager.EndSession` 原传字符串 `"{}"` 作请求体，改用 `new object()`（JsonConvert 下序列化为合法 `{}`）。
 
-- [ ] **#3 日志队列非线程安全**
+- [x] **#3 日志队列非线程安全**
   - `Application.logMessageReceived` 在后台线程产生的日志会在非主线程回调 → `ReportLog` → `_logQueue.Enqueue`，与主线程 `Update()` 的 `Dequeue` 并发
   - `Queue<T>` 非线程安全，并发读写会抛异常 / 队列损坏
   - 附带：`DeduplicationService` 访问 `Time.time`（仅主线程安全）同样有隐患
-  - 方向：`ConcurrentQueue<T>` 或加锁；非主线程日志先入并发缓冲，主线程再处理
+  - **已修（2026-06-23）**：生产者/消费者模式。新增 `ConcurrentQueue<LogData> _incomingQueue`；
+    `ReportLog` 瘦身为「仅入并发队列」（任意线程安全，不碰 Time.time/_logQueue）；
+    新增 `DrainIncoming()` 在主线程 `Update` 开头 + `OnApplicationQuit` 执行去重/限长/入 `_logQueue`。
+    `_logQueue` 与 `DeduplicationService` 从此主线程独占。
 
 ---
 
