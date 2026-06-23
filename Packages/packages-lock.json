@@ -1,14 +1,5 @@
 {
   "dependencies": {
-    "com.unifan.ides": {
-      "version": "https://github.com/821869798/com.unifan.ides.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.unity.test-framework": "1.1.9"
-      },
-      "hash": "e837a1599f95ea37c2f2dbc97d07889f4dd11767"
-    },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
       "depth": 2,
