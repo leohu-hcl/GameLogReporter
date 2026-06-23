@@ -1,7 +1,9 @@
 {
     "name": "GameLogReporter",
     "rootNamespace": "GameLogReporter",
-    "references": [],
+    "references": [
+        "Newtonsoft.Json"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

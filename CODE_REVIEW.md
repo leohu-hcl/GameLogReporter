@@ -11,15 +11,16 @@
 
 ## 🔴 严重（功能不工作 / 数据丢失）
 
-- [ ] **#1 `JsonUtility` 不支持 `Dictionary` 与 `DateTime` → metadata 永远丢失**
+- [x] **#1 `JsonUtility` 不支持 `Dictionary` 与 `DateTime` → metadata 永远丢失**
   - 位置：`NetworkManager.SerializeLogs` 用 `JsonUtility.ToJson`；`LogData.metadata` 是 `Dictionary<string,object>`，`timestamp` 是 `DateTime`
   - 后果：性能数据(fps/memory)、用户行为参数、自定义字段、时间戳全部传不到服务器
-  - 方向：引入 Newtonsoft.Json（`com.unity.nuget.newtonsoft-json`）或手动拼装
+  - **已修（2026-06-23）**：引入 Newtonsoft.Json（package.json 依赖 + asmdef 引用）。新增 `Runtime/JsonSettings.cs` 统一设置；`NetworkManager.SerializeLogs`、`HttpClient` 泛型 Post 改用 `JsonConvert`。metadata/DateTime 正确序列化。
 
-- [ ] **#2 枚举默认序列化为数字，与 Web 端期望的字符串不一致**
+- [x] **#2 枚举默认序列化为数字，与 Web 端期望的字符串不一致**
   - `logType`/`level` 经 `JsonUtility` 变成 int（0,1,2…），Web 端期望 `'error'/'warning'/'performance'…`
   - 后果：级别 / 类型在服务端全部错位
-  - 方向：序列化为后端约定的字符串（StringEnumConverter 或自定义映射）
+  - **已修（2026-06-23）**：`GameLogType`/`LogLevel` 标 `[EnumMember(Value="...")]` + `StringEnumConverter`，发后端约定的小写字符串（`performance`/`user_action`/`error`…）。后端 `LogService` 的数字兼容映射（本就有 logType 错位 bug）已删除。
+  - 连带修复：`SessionManager.EndSession` 原传字符串 `"{}"` 作请求体，改用 `new object()`（JsonConvert 下序列化为合法 `{}`）。
 
 - [ ] **#3 日志队列非线程安全**
   - `Application.logMessageReceived` 在后台线程产生的日志会在非主线程回调 → `ReportLog` → `_logQueue.Enqueue`，与主线程 `Update()` 的 `Dequeue` 并发

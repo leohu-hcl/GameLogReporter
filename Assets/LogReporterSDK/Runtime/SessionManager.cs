@@ -95,7 +95,7 @@ namespace GameLogReporter
 
             yield return _httpClient.Post<object, SessionResponse>(
                 url,
-                "{}",
+                new object(),
                 (response) =>
                 {
                     if (response != null && response.success)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace GameLogReporter
@@ -172,7 +173,7 @@ namespace GameLogReporter
             }
             
             var request = new BatchLogsRequest { logs = logsForTransmission };
-            return JsonUtility.ToJson(request);
+            return JsonConvert.SerializeObject(request, JsonSettings.Default);
         }
     }
 }

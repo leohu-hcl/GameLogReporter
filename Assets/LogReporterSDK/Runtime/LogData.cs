@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace GameLogReporter
 {
@@ -8,9 +9,13 @@ namespace GameLogReporter
     /// </summary>
     public enum GameLogType
     {
+        [EnumMember(Value = "performance")]
         Performance,
+        [EnumMember(Value = "user_action")]
         UserAction,
+        [EnumMember(Value = "system_log")]
         SystemLog,
+        [EnumMember(Value = "custom")]
         Custom
     }
 
@@ -19,10 +24,15 @@ namespace GameLogReporter
     /// </summary>
     public enum LogLevel
     {
+        [EnumMember(Value = "debug")]
         Debug,
+        [EnumMember(Value = "info")]
         Info,
+        [EnumMember(Value = "warning")]
         Warning,
+        [EnumMember(Value = "error")]
         Error,
+        [EnumMember(Value = "critical")]
         Critical
     }
 

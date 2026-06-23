@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Text;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -29,16 +30,16 @@ namespace GameLogReporter
             Action<TResponse> onSuccess, 
             Action<HttpError> onError)
         {
-            string json = JsonUtility.ToJson(requestData);
-            
+            string json = JsonConvert.SerializeObject(requestData, JsonSettings.Default);
+
             yield return PostInternal(
-                url, 
-                json, 
+                url,
+                json,
                 (responseText) =>
                 {
                     try
                     {
-                        var response = JsonUtility.FromJson<TResponse>(responseText);
+                        var response = JsonConvert.DeserializeObject<TResponse>(responseText, JsonSettings.Default);
                         onSuccess?.Invoke(response);
                     }
                     catch (Exception ex)
@@ -77,7 +78,7 @@ namespace GameLogReporter
             Action<string> onSuccess, 
             Action<HttpError> onError)
         {
-            string json = JsonUtility.ToJson(requestData);
+            string json = JsonConvert.SerializeObject(requestData, JsonSettings.Default);
             yield return PostInternal(url, json, onSuccess, onError);
         }
 
