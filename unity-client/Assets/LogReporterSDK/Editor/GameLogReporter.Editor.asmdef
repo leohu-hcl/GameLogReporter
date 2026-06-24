@@ -12,7 +12,9 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "GAMELOG_REPORTER_ENABLED"
+    ],
     "versionDefines": [],
     "noEngineReferences": false
 }
