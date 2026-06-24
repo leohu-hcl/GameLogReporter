@@ -84,6 +84,18 @@ GAMELOG_REPORTER_ENABLED
 
 加上后整个 SDK 程序集才会编译，自启动与自动日志收集随即生效。未定义该宏时 SDK 完全不存在于构建中——正式发行版若想彻底移除上报，去掉这个宏即可。
 
+也可在编辑器脚本（如构建管线）中用 API 切换，免去手动改 Player Settings：
+
+```csharp
+using GameLogReporter.Editor;
+
+LogReporterDefine.SetEnabled(true);   // 开启（加宏）
+LogReporterDefine.SetEnabled(false);  // 关闭（去宏）
+bool on = LogReporterDefine.IsEnabled;
+```
+
+> 该 API 仅在编辑器下可用（宏是编译常量，运行时无法改变）；切换后需重新编译才生效，默认作用于当前激活的构建平台。
+
 > 注意：未定义该宏时，任何对 `LogReporter` 的**直接 API 调用**（如 `LogReporter.Instance.ReportCustom(...)`）会编译报错。请用 `#if GAMELOG_REPORTER_ENABLED` 包裹这些调用点；仅依赖自动日志收集则无需改动。
 
 ## 许可证
