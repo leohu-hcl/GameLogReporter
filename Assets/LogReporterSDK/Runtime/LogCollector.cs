@@ -30,8 +30,9 @@ namespace GameLogReporter
 
         private void OnUnityLogReceived(string condition, string stackTrace, LogType unityLogType)
         {
-            // 过滤SDK自身的日志，避免重复上报
-            if (SdkLogger.IsSdkLog(condition))
+            // 过滤SDK自身的日志，避免自收集回环：
+            // 优先用重入标志（不依赖消息内容、稳健），前缀匹配作兜底。
+            if (SdkLogger.IsEmitting || SdkLogger.IsSdkLog(condition))
             {
                 return; // 跳过SDK日志
             }

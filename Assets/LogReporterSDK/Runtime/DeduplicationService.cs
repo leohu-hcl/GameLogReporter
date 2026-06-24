@@ -186,22 +186,14 @@ namespace GameLogReporter
         }
         
         /// <summary>
-        /// 生成日志签名（用于去重判断）
+        /// 生成日志签名（用于去重判断）。
+        /// 直接用内容拼接作为字典 key —— 无哈希碰撞（避免误去重漏报），也无跨平台/跨运行不稳定问题。
         /// </summary>
         private string GenerateLogSignature(LogData logData)
         {
-            // 基于消息内容、堆栈跟踪、日志类型和级别生成签名
             string message = logData.message ?? "";
             string stackTrace = logData.stackTrace ?? "";
-            
-            // 使用哈希码生成更高效的签名
-            int hash = 17;
-            hash = hash * 23 + logData.logType.GetHashCode();
-            hash = hash * 23 + logData.level.GetHashCode();
-            hash = hash * 23 + (message?.GetHashCode() ?? 0);
-            hash = hash * 23 + (stackTrace?.GetHashCode() ?? 0);
-            
-            return hash.ToString();
+            return $"{(int)logData.logType}|{(int)logData.level}|{message}|{stackTrace}";
         }
         
         /// <summary>

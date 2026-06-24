@@ -431,20 +431,6 @@ namespace GameLogReporter
         }
 
         /// <summary>
-        /// 获取设备信息
-        /// </summary>
-        private DeviceInfo GetDeviceInfo()
-        {
-            return new DeviceInfo
-            {
-                platform = Application.platform.ToString(),
-                deviceModel = SystemInfo.deviceModel,
-                osVersion = SystemInfo.operatingSystem,
-                unityVersion = Application.unityVersion
-            };
-        }
-
-        /// <summary>
         /// 异步请求服务器分配的会话ID
         /// </summary>
         private IEnumerator RequestSessionId()

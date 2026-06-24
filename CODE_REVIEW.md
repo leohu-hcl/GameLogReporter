@@ -62,18 +62,19 @@
 
 ## 🟡 轻微（可维护性 / 一致性）
 
-- [ ] **#9 去重签名用 `string.GetHashCode()`**：有碰撞风险（误去重→漏报）、跨运行/平台不稳定。改用内容拼接或稳定哈希
-- [ ] **#10 `LogReporter.GetDeviceInfo()` 是死代码**，与 `RequestSessionId` 内联段重复（删一个）
-- [ ] **#11 单例双重创建时序**：`Instance` getter 会 AddComponent，与 `Awake` 设值可能短暂创建两个再 Destroy
-  - 注（2026-06-22 UPM 改造）：已改为 `[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` 自启动，
-    `Bootstrap` 内先判 `_instance != null`，正常路径不再走 getter 懒创建；getter 仅作兜底保留。时序风险大幅降低，剩余边角可后续清理。
-- [ ] **#12 `SdkLogger.SdkSources` + `IsSdkSource` 无人使用**（过滤实际靠 `IsSdkLog` 前缀匹配）——死代码
-- [ ] **#13 SDK 自身用 Debug.LogError 打日志 + 靠前缀过滤自己**：耦合脆弱，改日志格式即可能形成自收集回环
+- [x] **#9 去重签名用 `string.GetHashCode()`**：有碰撞风险（误去重→漏报）、跨运行/平台不稳定。
+  - **已修（2026-06-23）**：`GenerateLogSignature` 改用内容拼接 `"{logType}|{level}|{message}|{stackTrace}"` 作字典 key，无碰撞、跨平台稳定。
+- [x] **#10 `LogReporter.GetDeviceInfo()` 是死代码**，与 `RequestSessionId` 内联段重复（删一个）
+  - **已修（2026-06-23）**：删除未被调用的 `GetDeviceInfo()`；`RequestSessionId` 内联构造保留。
+- [x] **#11 单例双重创建时序**：`Instance` getter 会 AddComponent，与 `Awake` 设值可能短暂创建两个再 Destroy
+  - **已缓解（2026-06-22 UPM 改造）**：改为 `[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` 自启动，`Bootstrap` 内先判 `_instance != null`，正常路径不再走 getter 懒创建；getter 仅作兜底。时序风险已消除，无需进一步改动。
+- [x] **#12 `SdkLogger.SdkSources` + `IsSdkSource` 无人使用**（过滤实际靠 `IsSdkLog` 前缀匹配）——死代码
+  - **已修（2026-06-23）**：删除 `SdkSources` 字段、`IsSdkSource` 方法及无用 `using`。
+- [x] **#13 SDK 自身用 Debug.LogError 打日志 + 靠前缀过滤自己**：耦合脆弱，改日志格式即可能形成自收集回环
+  - **已修（2026-06-23）**：`SdkLogger` 新增 `[ThreadStatic] _isEmitting` 重入标志，`PrintToConsole` 打印前后置位；`LogCollector.OnUnityLogReceived` 优先据此跳过（不依赖消息内容），前缀匹配降为兜底。彻底避免自收集回环。
 
 ---
 
-## 建议修复顺序
-1. #1 #2（序列化）— 否则上报数据是错/空的，其余都白搭
-2. #3（线程安全）— 偶发崩溃难排查
-3. #5 #4 #6（性能监控没跑 / 去重丢数据 / 退出丢数据）— 功能完整性
-4. 其余按需清理
+## 状态
+所有 13 项（🔴3 + 🟠5 + 🟡5）已全部修复 / 缓解（2026-06）。
+

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace GameLogReporter
@@ -10,19 +9,16 @@ namespace GameLogReporter
     {
         // SDK日志统一前缀
         public static string SdkLogPrefix = "[LogReporter SDK]";
-        
-        // SDK内部组件列表（用于过滤）
-        private static readonly HashSet<string> SdkSources = new HashSet<string>
-        {
-            "SDK",
-            "NetworkManager",
-            "HttpClient",
-            "SessionManager",
-            "DeduplicationService",
-            "LogCollector",
-            "LogReporter"
-        };
-        
+
+        // 重入标志（每线程独立）：SDK 自身打印日志时置位，
+        // 供 LogCollector 的 logMessageReceived 回调据此跳过 SDK 自己的日志，避免自收集回环。
+        // 比前缀匹配稳健——不依赖消息内容。
+        [System.ThreadStatic]
+        private static bool _isEmitting;
+
+        /// <summary>SDK 当前线程是否正在打印自身日志。</summary>
+        public static bool IsEmitting => _isEmitting;
+
         private bool _enableLogging;
 
         public SdkLogger(bool enableLogging)
@@ -90,18 +86,26 @@ namespace GameLogReporter
         /// </summary>
         private void PrintToConsole(string message, LogLevel level)
         {
-            switch (level)
+            _isEmitting = true; // 标记：本次 Debug.* 触发的 logMessageReceived 应被跳过
+            try
             {
-                case LogLevel.Error:
-                case LogLevel.Critical:
-                    UnityEngine.Debug.LogError(message);
-                    break;
-                case LogLevel.Warning:
-                    UnityEngine.Debug.LogWarning(message);
-                    break;
-                default:
-                    UnityEngine.Debug.Log(message);
-                    break;
+                switch (level)
+                {
+                    case LogLevel.Error:
+                    case LogLevel.Critical:
+                        UnityEngine.Debug.LogError(message);
+                        break;
+                    case LogLevel.Warning:
+                        UnityEngine.Debug.LogWarning(message);
+                        break;
+                    default:
+                        UnityEngine.Debug.Log(message);
+                        break;
+                }
+            }
+            finally
+            {
+                _isEmitting = false;
             }
         }
 
@@ -118,17 +122,6 @@ namespace GameLogReporter
             // 检查是否以SDK统一前缀开头
             // 格式: [LogReporter SDK][组件名] 消息
             return message.StartsWith(SdkLogPrefix);
-        }
-        
-        /// <summary>
-        /// 检查source是否是SDK内部组件
-        /// </summary>
-        public static bool IsSdkSource(string source)
-        {
-            if (string.IsNullOrEmpty(source))
-                return false;
-                
-            return SdkSources.Contains(source);
         }
     }
 }
