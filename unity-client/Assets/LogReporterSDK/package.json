@@ -1,0 +1,20 @@
+{
+  "name": "com.gamelogreporter.sdk",
+  "version": "0.1.0",
+  "displayName": "GameLog Reporter SDK",
+  "description": "Unity 游戏日志上报 SDK：自启动、自动日志收集、批量上报、离线缓存、去重、会话管理。",
+  "unity": "2022.3",
+  "keywords": [
+    "logging",
+    "reporter",
+    "analytics",
+    "telemetry"
+  ],
+  "author": {
+    "name": "huliuchao"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  }
+}
