@@ -51,7 +51,7 @@ namespace GameLogReporter
         public string[] tags;
         public DateTime timestamp;
         public string clientVersion;
-        // 注意：deviceInfo 不再在此处发送，已存储在服务器端的设备表中
+        // 设备信息由服务端按会话存储，不随每条日志发送
     }
 
     /// <summary>

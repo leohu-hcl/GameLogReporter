@@ -112,7 +112,6 @@ namespace GameLogReporter
 
         /// <summary>
         /// 检查消息是否是SDK日志（用于过滤）
-        /// 使用更健壮的检测方式：检查是否以SDK前缀开头
         /// </summary>
         public static bool IsSdkLog(string message)
         {

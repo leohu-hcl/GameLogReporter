@@ -3,6 +3,9 @@ import { Log } from '../models/Log';
 import { Device } from '../models/Device';
 import { ISession } from '../models/Session';
 import { AppError } from '../middleware/errorHandler';
+import { setupLogger } from '../config/logger';
+
+const logger = setupLogger();
 
 export class SessionService {
   /**
@@ -135,11 +138,11 @@ export class SessionService {
       if (!latestLog || new Date(latestLog.createdAt) < cutoffTime) {
         await this.endSession(session.sessionId);
         closedCount++;
-        console.log(`[SessionService] Auto-closed inactive session: ${session.sessionId}`);
+        logger.info(`[SessionService] Auto-closed inactive session: ${session.sessionId}`);
       }
     }
 
-    console.log(`[SessionService] Closed ${closedCount} inactive sessions`);
+    logger.info(`[SessionService] Closed ${closedCount} inactive sessions`);
     return { closedCount };
   }
 

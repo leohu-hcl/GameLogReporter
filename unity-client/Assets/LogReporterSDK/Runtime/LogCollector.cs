@@ -34,7 +34,7 @@ namespace GameLogReporter
             // 优先用重入标志（不依赖消息内容、稳健），前缀匹配作兜底。
             if (SdkLogger.IsEmitting || SdkLogger.IsSdkLog(condition))
             {
-                return; // 跳过SDK日志
+                return;
             }
 
             LogLevel level = LogLevel.Info;

@@ -15,17 +15,15 @@ namespace GameLogReporter
         private Queue<LogData> _offlineQueue = new Queue<LogData>();
         private const int MAX_OFFLINE_QUEUE_SIZE = 1000;
         
-        // HTTP客户端
         private HttpClient _httpClient;
         
         // 重试机制
         private float _lastRetryTime = 0f;
         private float _retryDelay = 5f; // 初始重试延迟（秒）
-        private const float MAX_RETRY_DELAY = 60f; // 最大重试延迟（秒）
-        private const float RETRY_DELAY_MULTIPLIER = 2f; // 延迟倍数（指数退避）
+        private const float MAX_RETRY_DELAY = 60f;
+        private const float RETRY_DELAY_MULTIPLIER = 2f;
         private bool _isRetrying = false;
         
-        // SDK日志管理器
         private SdkLogger _sdkLogger;
 
         // 离线日志持久化（失败即落盘，崩溃不丢）
@@ -60,7 +58,6 @@ namespace GameLogReporter
                 (responseText) =>
                 {
                     _sdkLogger?.Debug($"Successfully sent {logs.Count} logs", "NetworkManager");
-                    // 成功时重置重试延迟
                     _retryDelay = 5f;
                     _lastRetryTime = 0f;
                     // 离线队列已清空时，清掉盘上的离线快照
@@ -71,7 +68,6 @@ namespace GameLogReporter
                 },
                 (error) =>
                 {
-                    // 根据错误类型调整重试延迟
                     float multiplier = error.errorType == HttpErrorType.ConnectionError
                         ? RETRY_DELAY_MULTIPLIER * 1.5f
                         : RETRY_DELAY_MULTIPLIER;
@@ -79,7 +75,6 @@ namespace GameLogReporter
 
                     _sdkLogger?.Error($"Failed to send logs. {error.message}", "NetworkManager");
 
-                    // 失败时加入离线队列
                     foreach (var log in logs)
                     {
                         if (_offlineQueue.Count < MAX_OFFLINE_QUEUE_SIZE)
@@ -92,10 +87,8 @@ namespace GameLogReporter
                         }
                     }
 
-                    // 失败即落盘：崩溃也不丢离线日志
                     _logStore?.Save(_offlineQueue);
 
-                    // 更新重试时间
                     _lastRetryTime = Time.time;
                 }
             );

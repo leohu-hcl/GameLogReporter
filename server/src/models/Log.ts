@@ -17,7 +17,7 @@ export enum LogLevel {
 
 export interface ILog extends Document {
   logId: string;
-  sessionId: string;  // 现在强制关联到会话
+  sessionId: string;
   logType: LogType;
   level: LogLevel;
   message: string;

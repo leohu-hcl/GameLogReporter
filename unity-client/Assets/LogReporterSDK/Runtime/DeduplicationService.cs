@@ -8,7 +8,6 @@ namespace GameLogReporter
     /// </summary>
     public class DeduplicationService
     {
-        // 最大去重缓存大小
         private const int MAX_DEDUPE_CACHE_SIZE = 500;
         
         // 日志去重缓存：key=日志签名, value=(日志数据, 首次时间, 重复次数)
@@ -40,7 +39,6 @@ namespace GameLogReporter
             if (_deduplicationCache.Count >= MAX_DEDUPE_CACHE_SIZE)
             {
                 _sdkLogger?.Warning($"Deduplication cache reached maximum size ({MAX_DEDUPE_CACHE_SIZE}), clearing oldest entries");
-                // 移除最早的一些条目
                 CleanupOldestDeduplicationEntries();
             }
 
@@ -170,7 +168,6 @@ namespace GameLogReporter
             // 按照首次时间升序排序
             sortedEntries.Sort((a, b) => a.Value.firstTime.CompareTo(b.Value.firstTime));
             
-            // 移除前25%的条目（约125个）
             int entriesToRemove = Mathf.Max(1, MAX_DEDUPE_CACHE_SIZE / 4);
 
             for(int i = 0; i < entriesToRemove && i < sortedEntries.Count; i++)

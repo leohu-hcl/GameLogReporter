@@ -16,7 +16,7 @@ namespace GameLogReporter
 
         public SessionManager(string apiUrl, SdkLogger sdkLogger = null)
         {
-            _apiUrl = apiUrl;  // 现在应该是 http://localhost:3000/api/sessions
+            _apiUrl = apiUrl;
             _sdkLogger = sdkLogger;
             _httpClient = new HttpClient(10, sdkLogger);
         }
@@ -90,7 +90,6 @@ namespace GameLogReporter
                 yield break;
             }
 
-            // 移除 /logs 路径，使用 /sessions 替代
             string url = $"{_apiUrl}/{sessionId}/end";
 
             yield return _httpClient.Post<object, SessionResponse>(

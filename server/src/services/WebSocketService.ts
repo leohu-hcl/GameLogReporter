@@ -32,13 +32,13 @@ export function setupWebSocket(server: HttpServer): void {
       }
     });
 
-    // 订阅特定游戏的日志（保持向后兼容）
+    // 订阅特定游戏的日志
     socket.on('subscribe:game', (gameId: string) => {
       socket.join(`game:${gameId}`);
       logger.info(`Socket ${socket.id} subscribed to game ${gameId}`);
     });
 
-    // 取消订阅（保持向后兼容）
+    // 取消订阅
     socket.on('unsubscribe:game', (gameId: string) => {
       socket.leave(`game:${gameId}`);
       logger.info(`Socket ${socket.id} unsubscribed from game ${gameId}`);
@@ -57,7 +57,7 @@ export function setupWebSocket(server: HttpServer): void {
       });
     });
 
-    // 取消订阅会话（保持向后兼容）
+    // 取消订阅会话
     socket.on('unsubscribe:session', (sessionId: string) => {
       // 获取会话对应的游戏ID
       Session.findOne({ sessionId }).select('gameId').then(session => {

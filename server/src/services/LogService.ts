@@ -8,7 +8,7 @@ import { broadcastLogToGame, broadcastLogToSession } from './WebSocketService';
 const logger = setupLogger();
 
 export interface CreateLogDto {
-  sessionId: string;  // 现在必须提供会话ID
+  sessionId: string;
   logType: LogType;
   level: LogLevel;
   message: string;
@@ -24,7 +24,7 @@ export interface GetLogsQuery {
   limit: number;
   logType?: string;
   level?: string;
-  sessionId?: string;  // 现在可以按会话ID查询
+  sessionId?: string;
   startTime?: string;
   endTime?: string;
   search?: string;
@@ -272,7 +272,7 @@ export async function getLogStats(query: {
       total,
       byType: byTypeMap,
       byLevel: byLevelMap,
-      byGame: bySessionMap,  // 保持返回名称兼容性，但现在实际是按会话统计
+      byGame: bySessionMap,  // 字段名保留为 byGame 以兼容旧前端，实际按会话统计
       byDevice: activeDevices,  // 活跃设备数
       recentErrors,
       recentWarnings,
