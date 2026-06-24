@@ -17,7 +17,11 @@ namespace GameLogReporter
         
         private float _deduplicationWindow;
         private SdkLogger _sdkLogger;
-        
+
+        // 因窗口过期/容量清理而需要上报的、带重复计数的日志，暂存于此，
+        // 由 CleanupDeduplicationCache() 取走（主线程）入队上报。
+        private readonly List<LogData> _pendingReport = new List<LogData>();
+
         public DeduplicationService(float deduplicationWindow, SdkLogger sdkLogger = null)
         {
             _deduplicationWindow = deduplicationWindow;
@@ -51,8 +55,11 @@ namespace GameLogReporter
                 }
                 else
                 {
-                    // 超过时间窗口，上报之前的日志（带重复次数），然后缓存新日志
-                    // 这里返回的是原始日志，因为需要先处理旧日志
+                    // 超过时间窗口：先把旧日志（若有重复计数）产出上报，再用新日志重置缓存
+                    if (cached.repeatCount > 0)
+                    {
+                        _pendingReport.Add(BuildReportLog(cached.logData, cached.repeatCount));
+                    }
                     _deduplicationCache[signature] = (logData, currentTime, 0);
                     return false; // 新日志，加入队列
                 }
@@ -66,54 +73,77 @@ namespace GameLogReporter
         }
         
         /// <summary>
-        /// 获取需要上报的去重日志
+        /// 把缓存中的日志加工为可上报形态（写入重复次数 metadata + 消息后缀）。
+        /// </summary>
+        private LogData BuildReportLog(LogData logData, int repeatCount)
+        {
+            if (repeatCount > 0)
+            {
+                if (logData.metadata == null)
+                {
+                    logData.metadata = new Dictionary<string, object>();
+                }
+                logData.metadata["_repeatCount"] = repeatCount;
+                logData.metadata["_deduplicated"] = true;
+                logData.message = $"{logData.message} (重复 {repeatCount} 次)";
+            }
+            return logData;
+        }
+
+        /// <summary>
+        /// 获取需要上报的去重日志（应用退出时汇总）。
+        /// 仅产出带重复计数（count&gt;0）的项——首次出现的日志在入队时已上报过，避免重复。
+        /// 同时带出此前暂存的待上报日志。
         /// </summary>
         public List<LogData> GetDeduplicatedLogs()
         {
             var logs = new List<LogData>();
-            
+
+            if (_pendingReport.Count > 0)
+            {
+                logs.AddRange(_pendingReport);
+                _pendingReport.Clear();
+            }
+
             foreach (var kvp in _deduplicationCache)
             {
                 if (kvp.Value.repeatCount > 0)
                 {
-                    var logData = kvp.Value.logData;
-                    
-                    // 将重复次数添加到metadata
-                    if (logData.metadata == null)
-                    {
-                        logData.metadata = new Dictionary<string, object>();
-                    }
-                    logData.metadata["_repeatCount"] = kvp.Value.repeatCount;
-                    logData.metadata["_deduplicated"] = true;
-
-                    // 更新消息，包含重复次数
-                    logData.message = $"{logData.message} (重复 {kvp.Value.repeatCount} 次)";
-                    
-                    logs.Add(logData);
-                }
-                else
-                {
-                    logs.Add(kvp.Value.logData);
+                    logs.Add(BuildReportLog(kvp.Value.logData, kvp.Value.repeatCount));
                 }
             }
-            
+
             return logs;
         }
-        
+
         /// <summary>
-        /// 清理过期的去重缓存
+        /// 清理过期的去重缓存，并返回其中带重复计数的日志（供上报）。
+        /// 同时带出此前因窗口过期即时产出、暂存的待上报日志。
         /// </summary>
-        public void CleanupDeduplicationCache()
+        public List<LogData> CleanupDeduplicationCache()
         {
+            var toReport = new List<LogData>();
+
+            // 1. 带出暂存的待上报日志（窗口过期即时覆盖时产生）
+            if (_pendingReport.Count > 0)
+            {
+                toReport.AddRange(_pendingReport);
+                _pendingReport.Clear();
+            }
+
+            // 2. 清理过期项；带计数的产出上报
             float currentTime = Time.time;
             List<string> keysToRemove = new List<string>();
 
             foreach (var kvp in _deduplicationCache)
             {
-                // 如果超过时间窗口，移除
                 if (currentTime - kvp.Value.firstTime > _deduplicationWindow)
                 {
                     keysToRemove.Add(kvp.Key);
+                    if (kvp.Value.repeatCount > 0)
+                    {
+                        toReport.Add(BuildReportLog(kvp.Value.logData, kvp.Value.repeatCount));
+                    }
                 }
             }
 
@@ -121,6 +151,8 @@ namespace GameLogReporter
             {
                 _deduplicationCache.Remove(key);
             }
+
+            return toReport;
         }
         
         /// <summary>
@@ -140,10 +172,15 @@ namespace GameLogReporter
             
             // 移除前25%的条目（约125个）
             int entriesToRemove = Mathf.Max(1, MAX_DEDUPE_CACHE_SIZE / 4);
-            
+
             for(int i = 0; i < entriesToRemove && i < sortedEntries.Count; i++)
             {
                 var entry = sortedEntries[i];
+                // 带重复计数的，产出待上报，避免容量清理时丢失计数
+                if (entry.Value.repeatCount > 0)
+                {
+                    _pendingReport.Add(BuildReportLog(entry.Value.logData, entry.Value.repeatCount));
+                }
                 _deduplicationCache.Remove(entry.Key);
             }
         }

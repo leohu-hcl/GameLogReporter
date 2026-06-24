@@ -35,28 +35,28 @@
 
 ## 🟠 中等（边界 / 健壮性）
 
-- [ ] **#4 去重会吞掉重复日志的上报**
+- [x] **#4 去重会吞掉重复日志的上报**
   - 窗口内重复仅 `repeatCount++`，带次数的日志只在 `OnApplicationQuit` 经 `GetDeduplicatedLogs` 上报；崩溃/被杀则全丢
   - 窗口过期分支（`ShouldDeduplicate` 的 else）直接覆盖缓存，**未把累计 repeatCount 入队上报** → 计数清零丢失
-  - 方向：窗口过期时先把旧的（带 count）入队再缓存新的
+  - **已修（2026-06-23）**：`DeduplicationService` 新增 `_pendingReport` + `BuildReportLog()`；窗口过期（ShouldDeduplicate else）、定期清理（CleanupDeduplicationCache 改返回 `List<LogData>`）、容量清理（CleanupOldestDeduplicationEntries）三处都把带 count 的旧日志加工后产出，由 `LogReporter` 入队上报。顺带修正 `GetDeduplicatedLogs` 退出时只产出 count>0（首次日志已入队过，避免重复上报）。配合 #7 落盘，崩溃也不丢。
 
 - [x] **#5 自动性能监控根本没运行 + `1f/Time.deltaTime` 可能为 Infinity**
   - `LogReporter.Update()` 从未调用 `_logCollector.Update()` → `enablePerformanceMonitoring` 形同虚设（只有 Tester 手动触发）
   - `CollectPerformanceData` 的 `1f/Time.deltaTime` 在 deltaTime=0 时为 Infinity
   - **已修（2026-06-23）**：关注点分离——性能/行为自动采集不属于日志 SDK 核心职责，且这些是死代码（Update/TrackUserAction 从没被调用）。直接**剥离** `LogCollector` 的自动采集（删 `Update`/`CollectPerformanceData`/`TrackUserAction` + 相关字段），`Initialize()` 改无参；`LogReporterConfig` 删 `enablePerformanceMonitoring`/`enableUserActionTracking`/`performanceCheckInterval`。两个 bug 随死代码删除而消失。保留 `LogReporter.ReportPerformance()`/`ReportUserAction()` 作手动上报便捷 API。
 
-- [ ] **#6 `OnApplicationQuit` 的"同步上报"是假的**
+- [x] **#6 `OnApplicationQuit` 的"同步上报"是假的**
   - `SendLogsBatchSync` 实际仍是 `StartCoroutine`（异步）；OnApplicationQuit 返回后协程基本无机会执行完
   - 后果：退出时的剩余日志与 EndSession 大概率发不出（移动端尤甚）
-  - 方向：`Application.wantsToQuit` 阻塞 / 本地持久化下次补发
+  - **已修（2026-06-23）**：删除假同步 `SendLogsBatchSync`/`FlushLogs(sync)` 分支。`OnApplicationQuit` 改为把所有未发日志（队列 + 离线队列 + 去重缓存带 count）**落盘**，发送交给下次启动补发——退出只做快速可靠的本地写盘，不再依赖发不完的异步 HTTP。
 
-- [ ] **#7 离线队列只在内存，进程退出即丢**
+- [x] **#7 离线队列只在内存，进程退出即丢**
   - README 宣称"离线缓存、恢复自动上报"，但 `_offlineQueue` 是纯内存 `Queue`，崩溃/退出全没
-  - 方向：落地到 `Application.persistentDataPath`，或修正文案
+  - **已修（2026-06-23）**：新增 `Runtime/LogStore.cs` 持久化层（`persistentDataPath/logreporter/pending.json`，Newtonsoft，IO 异常吞掉）。`NetworkManager` 发送**失败即落盘**离线队列快照（崩溃也不丢）；启动时 `LogReporter` 读盘补发后清盘。可经 `enableOfflinePersistence` 配置开关关闭。README 离线描述已与实际对齐。
 
-- [ ] **#8 Update 每帧轮询 + 可能多次 Flush 的 GC 压力**
+- [x] **#8 Update 每帧轮询 + 可能多次 Flush 的 GC 压力**
   - 每帧检查队列大小并可能多次 `StartCoroutine`；性能采集默认 1s 一条长期累积
-  - 方向：合并 flush 触发；评估采集频率
+  - **已修（2026-06-23）**：`Update` 的"定时 flush"与"按量 flush"合并为一次判断（同帧最多一次 flush）；性能采集已随 #5 剥离。
 
 ---
 

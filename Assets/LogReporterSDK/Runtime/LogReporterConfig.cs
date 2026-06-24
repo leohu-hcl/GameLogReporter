@@ -40,6 +40,10 @@ namespace GameLogReporter
         [Tooltip("去重时间窗口（秒）")]
         public float deduplicationWindow = 10f;
 
+        [Header("Offline")]
+        [Tooltip("启用离线持久化（退出/网络失败时未发日志落盘，下次启动补发）")]
+        public bool enableOfflinePersistence = true;
+
         [Header("SDK Logging")]
         [Tooltip("SDK 自身是否向 Unity 控制台打印日志")]
         public bool enableSdkLogging = true;

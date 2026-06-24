@@ -28,10 +28,14 @@ namespace GameLogReporter
         // SDK日志管理器
         private SdkLogger _sdkLogger;
 
-        public NetworkManager(string apiUrl, SdkLogger sdkLogger = null)
+        // 离线日志持久化（失败即落盘，崩溃不丢）
+        private LogStore _logStore;
+
+        public NetworkManager(string apiUrl, SdkLogger sdkLogger = null, LogStore logStore = null)
         {
             _apiUrl = apiUrl;
             _sdkLogger = sdkLogger;
+            _logStore = logStore;
             _httpClient = new HttpClient(10, sdkLogger);
         }
 
@@ -46,20 +50,7 @@ namespace GameLogReporter
             coroutineRunner.StartCoroutine(SendLogsBatchCoroutine(logs));
         }
 
-        /// <summary>
-        /// 同步批量上报日志（用于应用退出时）
-        /// </summary>
-        public void SendLogsBatchSync(List<LogData> logs)
-        {
-            if (logs == null || logs.Count == 0) return;
-
-            // 在Unity中，同步HTTP请求需要特殊处理
-            // 这里使用协程但等待完成
-            MonoBehaviour coroutineRunner = LogReporter.Instance;
-            coroutineRunner.StartCoroutine(SendLogsBatchCoroutine(logs, true));
-        }
-
-        private IEnumerator SendLogsBatchCoroutine(List<LogData> logs, bool sync = false)
+        private IEnumerator SendLogsBatchCoroutine(List<LogData> logs)
         {
             string json = SerializeLogs(logs);
 
@@ -72,17 +63,22 @@ namespace GameLogReporter
                     // 成功时重置重试延迟
                     _retryDelay = 5f;
                     _lastRetryTime = 0f;
+                    // 离线队列已清空时，清掉盘上的离线快照
+                    if (_offlineQueue.Count == 0)
+                    {
+                        _logStore?.Clear();
+                    }
                 },
                 (error) =>
                 {
                     // 根据错误类型调整重试延迟
-                    float multiplier = error.errorType == HttpErrorType.ConnectionError 
-                        ? RETRY_DELAY_MULTIPLIER * 1.5f 
+                    float multiplier = error.errorType == HttpErrorType.ConnectionError
+                        ? RETRY_DELAY_MULTIPLIER * 1.5f
                         : RETRY_DELAY_MULTIPLIER;
                     _retryDelay = Mathf.Min(_retryDelay * multiplier, MAX_RETRY_DELAY);
-                    
+
                     _sdkLogger?.Error($"Failed to send logs. {error.message}", "NetworkManager");
-                    
+
                     // 失败时加入离线队列
                     foreach (var log in logs)
                     {
@@ -95,7 +91,10 @@ namespace GameLogReporter
                             _sdkLogger?.Warning($"Offline queue is full, dropping log: {log.message}", "NetworkManager");
                         }
                     }
-                    
+
+                    // 失败即落盘：崩溃也不丢离线日志
+                    _logStore?.Save(_offlineQueue);
+
                     // 更新重试时间
                     _lastRetryTime = Time.time;
                 }
@@ -137,6 +136,16 @@ namespace GameLogReporter
         public int GetOfflineQueueSize()
         {
             return _offlineQueue.Count;
+        }
+
+        /// <summary>
+        /// 导出并清空离线队列（退出时汇总落盘用）。
+        /// </summary>
+        public List<LogData> DrainOfflineQueue()
+        {
+            var logs = new List<LogData>(_offlineQueue);
+            _offlineQueue.Clear();
+            return logs;
         }
 
         /// <summary>

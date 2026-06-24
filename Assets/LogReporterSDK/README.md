@@ -66,6 +66,7 @@ LogReporter.Configure(o =>
 | `batchSize` | `50` | 单批上报条数上限 |
 | `enableDeduplication` | `true` | 日志去重 |
 | `deduplicationWindow` | `10` | 去重时间窗口（秒） |
+| `enableOfflinePersistence` | `true` | 离线持久化（退出/失败落盘，下次启动补发） |
 | `enableSdkLogging` | `true` | SDK 自身是否打印到控制台 |
 
 ## 日志等级 / 类型

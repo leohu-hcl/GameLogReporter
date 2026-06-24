@@ -121,6 +121,9 @@ namespace GameLogReporter
         // 会话管理器
         private SessionManager _sessionManager;
 
+        // 离线日志持久化
+        private LogStore _logStore;
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
@@ -142,7 +145,13 @@ namespace GameLogReporter
             // 初始化SDK日志管理器
             _sdkLogger = new SdkLogger(_config.enableSdkLogging);
 
-            _networkManager = new NetworkManager($"{_config.apiBaseUrl}/logs", _sdkLogger);
+            // 离线持久化层（按开关启用）
+            if (_config.enableOfflinePersistence)
+            {
+                _logStore = new LogStore(_sdkLogger);
+            }
+
+            _networkManager = new NetworkManager($"{_config.apiBaseUrl}/logs", _sdkLogger, _logStore);
             _logCollector = new LogCollector(this);
             _logCollector.Initialize();
 
@@ -157,6 +166,21 @@ namespace GameLogReporter
 
             // 初始化时向服务器请求会话ID
             StartCoroutine(RequestSessionId());
+
+            // 读取上次未发出的日志，补发（退出/网络失败/崩溃时落盘的）
+            if (_logStore != null)
+            {
+                var pending = _logStore.Load();
+                if (pending.Count > 0)
+                {
+                    foreach (var logData in pending)
+                    {
+                        _logQueue.Enqueue(logData);
+                    }
+                    _logStore.Clear(); // 取走即清盘；若本次又没发成功，退出时会重新落盘
+                    _sdkLogger.Info($"Recovered {pending.Count} pending logs from disk");
+                }
+            }
 
             _isInitialized = true;
 
@@ -189,23 +213,19 @@ namespace GameLogReporter
             // 先把后台线程投递的日志搬进主线程队列（去重/限长在此发生）
             DrainIncoming();
 
-            // 清理过期的去重缓存
+            // 清理过期的去重缓存，带计数的过期日志入队上报
             if (_config.enableDeduplication)
             {
                 CleanupDeduplicationCache();
             }
 
-            // 定时批量上报
-            if (Time.time - _lastBatchTime >= _config.batchInterval)
+            // 批量上报：定时到点 或 队列达到批量大小（合并为一次判断，避免同帧多次 flush）
+            bool dueByTime = Time.time - _lastBatchTime >= _config.batchInterval;
+            bool dueBySize = _logQueue.Count >= _config.batchSize;
+            if (dueByTime || dueBySize)
             {
                 FlushLogs();
                 _lastBatchTime = Time.time;
-            }
-
-            // 如果队列达到批量大小，立即上报
-            if (_logQueue.Count >= _config.batchSize)
-            {
-                FlushLogs();
             }
 
             // 尝试发送离线队列中的日志（带重试延迟）
@@ -221,23 +241,37 @@ namespace GameLogReporter
 
         private void OnApplicationQuit()
         {
-            // 0. 先 drain 入口队列，确保后台线程残留日志也纳入最后一批
+            // 0. 先 drain 入口队列，确保后台线程残留日志也纳入
             DrainIncoming();
 
-            // 1. 上报所有去重缓存中的日志
+            // 1. 去重缓存中带重复计数的日志入队
             if (_config.enableDeduplication && _deduplicationService != null)
             {
                 var deduplicatedLogs = _deduplicationService.GetDeduplicatedLogs();
                 foreach (var logData in deduplicatedLogs)
                 {
-                    _logQueue.Enqueue(logData);
+                    EnqueueToLogQueue(logData);
                 }
             }
 
-            // 2. 上报剩余日志
-            FlushLogs(true);
+            // 2. 汇总所有未发日志（内存队列 + 离线队列）落盘，交给下次启动补发。
+            //    退出时的异步 HTTP 基本发不完，落盘是唯一可靠的做法。
+            if (_logStore != null)
+            {
+                var unsent = new List<LogData>(_logQueue);
+                if (_networkManager != null)
+                {
+                    unsent.AddRange(_networkManager.DrainOfflineQueue());
+                }
+                _logStore.Save(unsent);
+            }
+            else
+            {
+                // 未启用持久化：尽力异步发一次（不保证送达）
+                FlushLogs();
+            }
 
-            // 3. 结束会话（发送请求即可，不需要等待）
+            // 3. 结束会话（发送请求即可，不强求送达；服务端有超时清理）
             if (_sessionManager != null && _logCollector != null && !string.IsNullOrEmpty(_logCollector.GetSessionId()))
             {
                 StartCoroutine(_sessionManager.EndSession(_logCollector.GetSessionId()));
@@ -285,14 +319,7 @@ namespace GameLogReporter
                     continue;
                 }
 
-                // 检查日志队列是否超出最大限制
-                if (_logQueue.Count >= MAX_LOG_QUEUE_SIZE)
-                {
-                    _sdkLogger?.Warning($"Log queue reached maximum size ({MAX_LOG_QUEUE_SIZE}), dropping oldest log");
-                    _logQueue.Dequeue(); // 移除最旧的日志
-                }
-
-                _logQueue.Enqueue(logData);
+                EnqueueToLogQueue(logData);
             }
         }
 
@@ -309,19 +336,36 @@ namespace GameLogReporter
         }
 
         /// <summary>
-        /// 清理过期的去重缓存
+        /// 清理过期的去重缓存，并把带重复计数的过期日志入队上报。
         /// </summary>
         private void CleanupDeduplicationCache()
         {
-            if (_deduplicationService != null)
+            if (_deduplicationService == null) return;
+
+            var toReport = _deduplicationService.CleanupDeduplicationCache();
+            foreach (var logData in toReport)
             {
-                _deduplicationService.CleanupDeduplicationCache();
+                EnqueueToLogQueue(logData);
             }
         }
 
         /// <summary>
-        /// 批量上报日志
+        /// 入主线程日志队列（带最大长度限制）。仅主线程调用。
         /// </summary>
+        private void EnqueueToLogQueue(LogData logData)
+        {
+            if (_logQueue.Count >= MAX_LOG_QUEUE_SIZE)
+            {
+                _sdkLogger?.Warning($"Log queue reached maximum size ({MAX_LOG_QUEUE_SIZE}), dropping oldest log");
+                _logQueue.Dequeue();
+            }
+            _logQueue.Enqueue(logData);
+        }
+
+        /// <summary>
+        /// 批量上报日志。
+        /// </summary>
+        /// <param name="sync">已废弃：Unity 无法真正同步上报，退出可靠性改由离线持久化保证。此参数被忽略。</param>
         public void FlushLogs(bool sync = false)
         {
             if (_logQueue.Count == 0) return;
@@ -335,15 +379,7 @@ namespace GameLogReporter
             if (logs.Count > 0)
             {
                 _sdkLogger?.Debug($"Flushing {logs.Count} logs to server");
-
-                if (sync)
-                {
-                    _networkManager.SendLogsBatchSync(logs);
-                }
-                else
-                {
-                    _networkManager.SendLogsBatch(logs);
-                }
+                _networkManager.SendLogsBatch(logs);
             }
         }
 
