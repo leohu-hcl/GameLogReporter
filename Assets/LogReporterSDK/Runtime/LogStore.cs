@@ -11,7 +11,7 @@ namespace GameLogReporter
     /// 下次启动读盘补发。IO 异常一律吞掉（持久化失败不能拖垮游戏）。
     /// 仅主线程访问（persistentDataPath 是 Unity API）。
     /// </summary>
-    internal class LogStore
+    public class LogStore
     {
         private const string DirName = "logreporter";
         private const string FileName = "pending.json";
