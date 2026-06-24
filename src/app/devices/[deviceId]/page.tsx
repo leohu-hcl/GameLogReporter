@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { InfoCard } from '@/components/common/InfoCard';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
+import { DistributionChart } from '@/components/dashboard/DistributionChart';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useDeviceWithSessions } from '@/hooks/useDeviceQueries';
@@ -212,6 +213,33 @@ export default function DeviceDetailPage() {
               iconColor="text-warning"
             />
           </div>
+
+          {/* 会话活动图 — 当前页各会话日志量，有错误的会话标红 */}
+          {sessions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display tracking-wide">会话活动</CardTitle>
+                <CardDescription>
+                  当前页各会话的日志量 (含错误的会话以红色标记，点击柱条查看会话)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DistributionChart
+                  height={Math.max(160, sessions.length * 34)}
+                  onBarClick={(key) => router.push(`/sessions/${key}`)}
+                  data={sessions.map((s) => ({
+                    key: s.sessionId,
+                    label: s.sessionId.substring(0, 8),
+                    value: s.logCount || 0,
+                    color:
+                      s.errorCount && s.errorCount > 0
+                        ? 'var(--destructive)'
+                        : 'var(--primary)',
+                  }))}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <DataTable
             title="设备会话"

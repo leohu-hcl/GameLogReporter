@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
 import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
+import { StatusDonut } from '@/components/dashboard/StatusDonut';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useDevicesList } from '@/hooks/useDeviceQueries';
@@ -102,6 +103,62 @@ export default function DevicesPage() {
               icon={FileText}
               iconColor="text-warning"
             />
+          </div>
+
+          {/* 分布环形图（基于当前页设备） */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display tracking-wide">活跃状态</CardTitle>
+                <CardDescription>当前页设备的在线 / 离线占比</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <StatusDonut
+                  centerLabel="设备"
+                  data={[
+                    {
+                      key: 'active',
+                      label: '活跃',
+                      value: devices.filter((d) => d.isActive).length,
+                      color: 'var(--success)',
+                    },
+                    {
+                      key: 'inactive',
+                      label: '离线',
+                      value: devices.filter((d) => !d.isActive).length,
+                      color: 'var(--muted-foreground)',
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display tracking-wide">平台分布</CardTitle>
+                <CardDescription>当前页设备按平台分类</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <StatusDonut
+                  centerLabel="平台"
+                  centervalue={new Set(devices.map((d) => d.platform)).size}
+                  data={Object.entries(
+                    devices.reduce<Record<string, number>>((acc, d) => {
+                      const p = d.platform || '未知';
+                      acc[p] = (acc[p] || 0) + 1;
+                      return acc;
+                    }, {})
+                  )
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([platform, count], i) => ({
+                      key: platform,
+                      label: platform,
+                      value: count,
+                      color: `var(--chart-${(i % 5) + 1})`,
+                    }))}
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* 设备列表 */}

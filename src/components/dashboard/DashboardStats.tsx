@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { StatCard } from '@/components/common/StatCard';
 import { FileText, AlertTriangle, AlertCircle, Smartphone } from 'lucide-react';
 import { LogStats } from '@/types';
+import { useDailyStats } from '@/hooks/useLogsQueries';
 
 interface DashboardStatsProps {
   stats?: LogStats;
@@ -13,6 +14,7 @@ type Tone = 'primary' | 'destructive' | 'warning' | 'info' | 'success';
 
 export function DashboardStats({ stats }: DashboardStatsProps) {
   const router = useRouter();
+  const { data: daily } = useDailyStats(7);
 
   // 计算今天的时间范围用于导航
   const today = new Date();
@@ -28,6 +30,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
     icon: typeof FileText;
     tone: Tone;
     description: string;
+    trend?: number[];
     onClick: () => void;
   }[] = [
     {
@@ -36,6 +39,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       icon: FileText,
       tone: 'primary',
       description: '今天记录的日志总数',
+      trend: daily?.map((d) => d.total),
       onClick: () => {
         const params = new URLSearchParams({
           startTime: todayStart,
@@ -50,6 +54,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       icon: AlertCircle,
       tone: 'destructive',
       description: '今天记录的错误日志',
+      trend: daily?.map((d) => d.error),
       onClick: () => {
         const params = new URLSearchParams({
           level: 'error',
@@ -65,6 +70,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       icon: AlertTriangle,
       tone: 'warning',
       description: '今天记录的警告日志',
+      trend: daily?.map((d) => d.warning),
       onClick: () => {
         const params = new URLSearchParams({
           level: 'warning',
@@ -80,6 +86,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       icon: Smartphone,
       tone: 'info',
       description: '今天有日志记录的活跃设备数',
+      trend: daily?.map((d) => d.device),
       onClick: () => {
         router.push('/devices');
       },
@@ -100,6 +107,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
             icon={stat.icon}
             tone={stat.tone}
             description={stat.description}
+            trend={stat.trend}
             onClick={stat.onClick}
           />
         </div>

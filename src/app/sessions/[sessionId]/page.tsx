@@ -7,6 +7,7 @@ import { Layout } from '@/components/common/Layout';
 import { PageHeader } from '@/components/common/PageHeader';
 import { InfoCard } from '@/components/common/InfoCard';
 import { DataTable } from '@/components/common/DataTable';
+import { DistributionChart } from '@/components/dashboard/DistributionChart';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useSessionWithLogs } from '@/hooks/useSessionQueries';
@@ -150,6 +151,38 @@ export default function SessionDetailPage() {
     error: 'bg-destructive/15 text-destructive border border-destructive/30',
     critical: 'bg-destructive/15 text-destructive border border-destructive/30',
   };
+
+  // 级别 → 图表填充色（CSS 变量，跟随主题）
+  const LEVEL_FILL: Record<string, string> = {
+    debug: 'var(--muted-foreground)',
+    info: 'var(--info)',
+    warning: 'var(--warning)',
+    error: 'var(--destructive)',
+    critical: 'var(--destructive)',
+  };
+
+  // 本页日志按级别聚合（用于分布图）
+  const levelOrder = ['critical', 'error', 'warning', 'info', 'debug'];
+  const levelChartData = (() => {
+    const logs = data?.logs;
+    if (!logs?.length) return [];
+    const counts: Record<string, number> = {};
+    for (const log of logs) {
+      counts[log.level] = (counts[log.level] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .sort(([a], [b]) => {
+        const ia = levelOrder.indexOf(a);
+        const ib = levelOrder.indexOf(b);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      })
+      .map(([level, count]) => ({
+        key: level,
+        label: LOG_LEVEL_LABELS[level] || level,
+        value: count,
+        color: LEVEL_FILL[level] || 'var(--muted-foreground)',
+      }));
+  })();
 
   if (isLoading) {
     return (
@@ -354,6 +387,24 @@ export default function SessionDetailPage() {
                 { label: '最后连接', value: new Date(device.lastSeen).toLocaleString('zh-CN') },
               ]}
             />
+          )}
+
+          {/* 本页日志级别分布 */}
+          {levelChartData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-display tracking-wide">本页级别分布</CardTitle>
+                <CardDescription>
+                  当前页 {logs.length} 条日志按级别分布 (点击柱条筛选该级别日志)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DistributionChart
+                  data={levelChartData}
+                  onBarClick={(level) => router.push(`/logs?level=${level}`)}
+                />
+              </CardContent>
+            </Card>
           )}
 
           <DataTable

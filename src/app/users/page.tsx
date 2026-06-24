@@ -9,11 +9,13 @@ import { FilterBar } from '@/components/common/FilterBar';
 import { SearchBar } from '@/components/common/SearchBar';
 import { FilterSelect } from '@/components/common/FilterSelect';
 import { DataTable } from '@/components/common/DataTable';
+import { StatusDonut } from '@/components/dashboard/StatusDonut';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useUsersList, useDeleteUser } from '@/hooks/useUsersQueries';
 import { DeleteDialog } from '@/components/users/DeleteDialog';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -156,6 +158,69 @@ export default function UsersPage() {
               创建用户
             </Button>
           </PageHeader>
+
+          {/* 分布概览（基于当前列表 / 筛选结果） */}
+          {(data?.users?.length || 0) > 0 && (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-display tracking-wide">角色分布</CardTitle>
+                  <CardDescription>当前列表用户按角色分类</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <StatusDonut
+                    centerLabel="用户"
+                    data={[
+                      {
+                        key: 'admin',
+                        label: '管理员',
+                        value: (data?.users || []).filter((u) => u.role === 'admin').length,
+                        color: 'var(--destructive)',
+                      },
+                      {
+                        key: 'editor',
+                        label: '编辑者',
+                        value: (data?.users || []).filter((u) => u.role === 'editor').length,
+                        color: 'var(--info)',
+                      },
+                      {
+                        key: 'viewer',
+                        label: '查看者',
+                        value: (data?.users || []).filter((u) => u.role === 'viewer').length,
+                        color: 'var(--muted-foreground)',
+                      },
+                    ].filter((s) => s.value > 0)}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-display tracking-wide">账户状态</CardTitle>
+                  <CardDescription>当前列表用户的启用 / 禁用占比</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <StatusDonut
+                    centerLabel="用户"
+                    data={[
+                      {
+                        key: 'active',
+                        label: '启用',
+                        value: (data?.users || []).filter((u) => u.isActive).length,
+                        color: 'var(--success)',
+                      },
+                      {
+                        key: 'inactive',
+                        label: '禁用',
+                        value: (data?.users || []).filter((u) => !u.isActive).length,
+                        color: 'var(--muted-foreground)',
+                      },
+                    ].filter((s) => s.value > 0)}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <FilterBar>
             <SearchBar

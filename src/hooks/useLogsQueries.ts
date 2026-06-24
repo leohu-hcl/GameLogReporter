@@ -114,3 +114,47 @@ export function useExportStatus(jobId: string) {
     refetchInterval: 5 * 1000, // Refetch every 5 seconds
   });
 }
+
+export interface DailyStatPoint {
+  date: string; // yyyy-MM-dd
+  total: number;
+  error: number;
+  warning: number;
+  device: number;
+}
+
+/**
+ * 获取过去 N 天逐日统计（用于趋势 sparkline）
+ * 后端只有按时间段汇总接口，这里并行请求每一天再拼成序列。
+ */
+export function useDailyStats(days = 7) {
+  return useQuery({
+    queryKey: ['logs', 'daily-stats', days],
+    queryFn: async (): Promise<DailyStatPoint[]> => {
+      const requests = Array.from({ length: days }, (_, i) => {
+        const start = new Date();
+        start.setDate(start.getDate() - (days - 1 - i));
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setHours(23, 59, 59, 999);
+
+        const y = start.getFullYear();
+        const m = String(start.getMonth() + 1).padStart(2, '0');
+        const d = String(start.getDate()).padStart(2, '0');
+
+        return logService
+          .getLogStats({ startTime: start.toISOString(), endTime: end.toISOString() })
+          .then((s) => ({
+            date: `${y}-${m}-${d}`,
+            total: s.total || 0,
+            error: s.byLevel?.error || 0,
+            warning: s.byLevel?.warning || 0,
+            device: s.byDevice || 0,
+          }));
+      });
+
+      return Promise.all(requests);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
