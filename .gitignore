@@ -6,6 +6,10 @@ node_modules/
 dist/
 .next/
 
+# 编辑器与工具
+.vscode/
+.spec-workflow/
+
 # Unity 生成目录
 unity-client/Library/
 unity-client/Temp/
