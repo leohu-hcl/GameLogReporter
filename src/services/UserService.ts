@@ -85,7 +85,7 @@ export async function login(username: string, password: string): Promise<LoginRe
       jwtSecret,
       {
         expiresIn: process.env.JWT_EXPIRE || '7d'
-      }
+      } as jwt.SignOptions
     );
 
     // 生成刷新令牌（有效期更长）
@@ -98,7 +98,7 @@ export async function login(username: string, password: string): Promise<LoginRe
       jwtSecret,
       {
         expiresIn: '30d'
-      }
+      } as jwt.SignOptions
     );
 
     return {
@@ -240,7 +240,7 @@ export async function refreshAuthToken(token: string): Promise<{ accessToken: st
       jwtSecret,
       {
         expiresIn: process.env.JWT_EXPIRE || '7d'
-      }
+      } as jwt.SignOptions
     );
 
     return {
