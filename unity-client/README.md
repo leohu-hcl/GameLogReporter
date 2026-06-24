@@ -75,20 +75,22 @@ logReporter.ReportUserAction("玩家点击了开始按钮");
 
 ```
 Assets/LogReporterSDK/
-├── Scripts/
-│   ├── LogReporter.cs           # 主SDK类
+├── Runtime/
+│   ├── LogReporter.cs           # 主 SDK 类（自启动入口）
+│   ├── LogReporterConfig.cs     # 配置（ScriptableObject）
 │   ├── SessionManager.cs        # 会话管理
-│   ├── NetworkManager.cs        # 网络通信
+│   ├── NetworkManager.cs        # 上报调度与重试
+│   ├── HttpClient.cs            # HTTP 通信
 │   ├── LogCollector.cs          # 日志收集
+│   ├── LogStore.cs              # 内存队列与离线落盘
 │   ├── DeduplicationService.cs  # 去重服务
-│   ├── SdkLogger.cs             # SDK日志
-│   └── Models/
-│       ├── LogData.cs           # 日志数据模型
-│       ├── DeviceInfo.cs        # 设备信息
-│       └── Enums.cs             # 枚举定义
-└── Resources/
-    └── (配置文件)
+│   ├── LogData.cs               # 日志数据模型与枚举
+│   ├── JsonSettings.cs          # JSON 序列化配置
+│   └── SdkLogger.cs             # SDK 自身日志
+├── Editor/                      # 编辑器工具（配置生成）
+└── Tests/                       # 单元测试
 ```
+
 
 ## 🔄 工作流程
 
