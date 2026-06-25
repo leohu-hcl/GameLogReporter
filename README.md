@@ -76,20 +76,6 @@ LogReporter.Configure(o =>
 - 等级：`Debug` / `Info` / `Warning` / `Error` / `Critical`
 - 类型：`Performance` / `UserAction` / `SystemLog` / `Custom`
 
-## 启用（编译期开关）
-
-SDK 默认**不参与编译、不进 player 构建**。需要启用时，在 **Project Settings → Player → Scripting Define Symbols** 中加入：
-
-```
-GAMELOG_REPORTER_ENABLED
-```
-
-加上后整个 SDK 程序集才会编译，自启动与自动日志收集随即生效。未定义该宏时 SDK 完全不存在于构建中。
-
-> **隐私 / 合规**：SDK 会采集设备信息（型号、系统版本、设备唯一标识等）用于会话识别。正式包应**不定义**该宏，使这部分代码彻底不进二进制；建议仅在 development 构建启用。推荐用 CI 固化：dev 流水线加宏、prod 流水线去宏（改完确保重新编译，勿用 `Library/` 缓存的旧程序集）。
-
-> **注意**：未定义该宏时，任何对 `LogReporter` 的**直接 API 调用**（如 `LogReporter.Instance.ReportCustom(...)`）会编译报错。请用 `#if GAMELOG_REPORTER_ENABLED` 包裹这些调用点；仅依赖自动日志收集则无需改动。
-
 ## 许可证
 
 MIT
