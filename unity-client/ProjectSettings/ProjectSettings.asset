@@ -884,7 +884,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone:
+    Standalone: 
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
@@ -1041,5 +1041,5 @@ PlayerSettings:
   platformRequiresReadableAssets: 0
   virtualTexturingSupportEnabled: 0
   packClustersForPlayer: 0
-  insecureHttpOption: 0
+  insecureHttpOption: 2
   useStringInternPool: 0
