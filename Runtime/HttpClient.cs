@@ -100,7 +100,28 @@ namespace GameLogReporter
                 request.SetRequestHeader("Content-Type", "application/json");
                 request.timeout = _timeout;
 
-                yield return request.SendWebRequest();
+                // SendWebRequest 在某些情况下会同步抛异常（如禁止明文 HTTP 的
+                // InvalidOperationException），不走 result 判断。先发起再 yield，
+                // 把发起阶段的异常收进 onError，避免裸奔到游戏控制台。
+                UnityWebRequestAsyncOperation op;
+                try
+                {
+                    op = request.SendWebRequest();
+                }
+                catch (Exception ex)
+                {
+                    var error = new HttpError
+                    {
+                        errorType = HttpErrorType.ConnectionError,
+                        message = $"Request failed to start: {ex.Message}",
+                        statusCode = 0
+                    };
+                    _logger?.Error($"HTTP request failed to start, URL: {url}, Error: {ex.Message}", "HttpClient");
+                    onError?.Invoke(error);
+                    yield break;
+                }
+
+                yield return op;
 
                 if (request.result != UnityWebRequest.Result.Success)
                 {
