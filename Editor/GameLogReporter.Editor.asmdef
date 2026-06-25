@@ -1,0 +1,20 @@
+{
+    "name": "GameLogReporter.Editor",
+    "rootNamespace": "GameLogReporter.Editor",
+    "references": [
+        "GameLogReporter"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "GAMELOG_REPORTER_ENABLED"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

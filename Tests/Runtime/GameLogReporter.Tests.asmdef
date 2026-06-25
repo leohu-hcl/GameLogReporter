@@ -1,0 +1,23 @@
+{
+    "name": "GameLogReporter.Tests",
+    "rootNamespace": "GameLogReporter.Tests",
+    "references": [
+        "GameLogReporter",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "GAMELOG_REPORTER_ENABLED"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

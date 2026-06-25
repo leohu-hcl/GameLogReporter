@@ -1,0 +1,17 @@
+{
+    "name": "GameLogReporter",
+    "rootNamespace": "GameLogReporter",
+    "references": [
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "GAMELOG_REPORTER_ENABLED"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
