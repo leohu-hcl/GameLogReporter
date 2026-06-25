@@ -4,7 +4,7 @@
 
 | 模块 | 技术栈 | 作用 |
 |---|---|---|
-| **unity-client** | Unity / C# | 嵌入游戏的 SDK，自动收集日志、性能、用户行为并批量上报 |
+| **unity-client** | Unity / C# | 嵌入游戏的 SDK，自动收集日志并批量上报，性能/行为可手动上报 |
 | **server** | Node.js + Express + MongoDB | 接收日志、提供查询/统计 API、WebSocket 实时推送、用户与权限管理 |
 | **web** | Next.js 16 + React 19 + Tailwind | 管理后台：日志检索、仪表板、设备/会话、告警、用户管理 |
 
@@ -63,19 +63,43 @@ npm run dev                   # http://localhost:3001
 
 Unity SDK 的接入方式见 [`unity-client/Assets/LogReporterSDK/README.md`](unity-client/Assets/LogReporterSDK/README.md)。
 
-## 📦 各模块文档
+### 常用脚本
 
-- [server/README.md](server/README.md) — 后端 API 服务
-- [web/README.md](web/README.md) — 管理后台前端
-- [unity-client/Assets/LogReporterSDK/README.md](unity-client/Assets/LogReporterSDK/README.md) — Unity SDK 接入指南
+```bash
+# server/
+npm run dev          # 开发（ts-node-dev 热重载）
+npm run build        # 编译到 dist/
+npm start            # 运行编译产物
+npm run seed         # 创建默认管理员账号
+npm run seed:logs    # 灌入测试日志
+
+# web/
+npm run dev          # 开发服务器（端口 3001）
+npm run build        # 生产构建
+npm run lint         # ESLint 检查
+npm run type-check   # TypeScript 类型检查
+```
 
 ## 📁 仓库结构
 
 ```
 GameLogReporter/
-├── server/          # 后端 API（Express + MongoDB）
-├── web/             # 管理后台（Next.js）
-├── unity-client/    # Unity 客户端工程与 SDK
+├── server/                  # 后端 API（Express + MongoDB + TypeScript）
+│   └── src/
+│       ├── controllers/     # 请求处理
+│       ├── services/        # 业务逻辑
+│       ├── models/          # Mongoose 数据模型
+│       ├── routes/          # 路由
+│       ├── middleware/      # 鉴权、限流、校验等中间件
+│       └── scripts/         # seed / 清理脚本
+├── web/                     # 管理后台（Next.js App Router）
+│   └── src/
+│       ├── app/             # 页面
+│       ├── components/      # UI 组件（common / ui / 业务域）
+│       ├── api/ + hooks/    # 数据请求层（Axios + React Query）
+│       └── context/         # 全局状态（认证、主题、设置）
+├── unity-client/            # Unity 客户端工程
+│   └── Assets/LogReporterSDK/   # 可作为 UPM 包发布的 SDK
 ├── docker-compose.yml
 └── .env.example
 ```
