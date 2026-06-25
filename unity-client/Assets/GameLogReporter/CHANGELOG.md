@@ -5,7 +5,7 @@
 ## [0.1.0] - 2026-06-22
 
 ### Added
-- 改造为标准 UPM 包（`com.gamelogreporter.sdk`）。
+- 改造为标准 UPM 包（`com.gamelogreporter`）。
 - 自启动：`[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` 自动创建 `LogReporter`，无需场景挂载。
 - `LogReporterConfig` ScriptableObject 配置，支持 `Create > GameLogReporter > Config`。
 - 代码配置 API `LogReporter.Configure(...)`，优先级高于 Resources 资源。

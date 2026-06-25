@@ -61,7 +61,7 @@ cp .env.example .env.local    # 按需修改后端地址
 npm run dev                   # http://localhost:3001
 ```
 
-Unity SDK 的接入方式见 [`unity-client/Assets/LogReporterSDK/README.md`](unity-client/Assets/LogReporterSDK/README.md)。
+Unity SDK 的接入方式见 [`unity-client/Assets/GameLogReporter/README.md`](unity-client/Assets/GameLogReporter/README.md)。
 
 ### 常用脚本
 
@@ -99,7 +99,7 @@ GameLogReporter/
 │       ├── api/ + hooks/    # 数据请求层（Axios + React Query）
 │       └── context/         # 全局状态（认证、主题、设置）
 ├── unity-client/            # Unity 客户端工程
-│   └── Assets/LogReporterSDK/   # 可作为 UPM 包发布的 SDK
+│   └── Assets/GameLogReporter/   # 可作为 UPM 包发布的 SDK
 ├── docker-compose.yml
 └── .env.example
 ```

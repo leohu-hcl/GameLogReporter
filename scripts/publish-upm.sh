@@ -3,7 +3,7 @@
 # 用法：./scripts/publish-upm.sh
 set -euo pipefail
 
-PREFIX="unity-client/Assets/LogReporterSDK"
+PREFIX="unity-client/Assets/GameLogReporter"
 cd "$(git rev-parse --show-toplevel)"
 
 git subtree split --prefix="$PREFIX" -b upm
