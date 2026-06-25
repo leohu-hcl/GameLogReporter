@@ -884,7 +884,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Standalone: GAMELOG_REPORTER_ENABLED
+    Standalone:
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
