@@ -3,6 +3,7 @@ import { Server as SocketServer, Socket } from 'socket.io';
 import { setupLogger } from '../config/logger';
 import * as logService from './LogService';
 import { Session } from '../models/Session';
+import { isAllowedOrigin } from '../config/cors';
 
 const logger = setupLogger();
 let io: SocketServer | null = null;
@@ -10,7 +11,7 @@ let io: SocketServer | null = null;
 export function setupWebSocket(server: HttpServer): void {
   io = new SocketServer(server, {
     cors: {
-      origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+      origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
       methods: ['GET', 'POST'],
       credentials: true
     }

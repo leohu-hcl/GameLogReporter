@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database';
+import { isAllowedOrigin } from './config/cors';
 import { setupLogger } from './config/logger';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
@@ -29,11 +30,9 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 app.use(compression());
 
-// CORS配置
+// CORS配置（局域网网段 + CORS_ORIGIN 白名单，见 config/cors.ts）
 app.use(cors({
-  origin: process.env.CORS_ORIGIN ? 
-    process.env.CORS_ORIGIN.split(',') : 
-    ['http://localhost:3001', 'http://localhost:4200', 'http://127.0.0.1:3001'],
+  origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
   credentials: true
 }));
 

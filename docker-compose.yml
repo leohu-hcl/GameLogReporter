@@ -28,9 +28,11 @@ services:
     build:
       context: ./web
       args:
-        # NEXT_PUBLIC_* are baked at build time; must be browser-reachable URLs
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3010/api}
-        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3010}
+        # 默认从浏览器当前 host 推导 server 地址，只需告知端口；
+        # 若 server 部署在不同 host，设置 NEXT_PUBLIC_API_URL/SOCKET_URL 覆盖。
+        NEXT_PUBLIC_SERVER_PORT: ${SERVER_PORT:-3010}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-}
     restart: unless-stopped
     ports:
       - "3001:3001"
