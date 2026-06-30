@@ -130,13 +130,33 @@ export async function createSession(req: Request, res: Response, next: NextFunct
     
     await session.save();
     
-    res.status(201).json({ 
-      success: true, 
-      data: { 
+    res.status(201).json({
+      success: true,
+      data: {
         sessionId,
         timestamp: new Date().toISOString()
       }
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * 设备心跳：刷新 Device.lastSeen，使派生的活跃状态保持在线。
+ * Unity 客户端定时调用，无需认证。
+ */
+export async function heartbeat(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { deviceId } = req.body;
+    if (!deviceId) {
+      throw new AppError('Device ID is required', 400);
+    }
+
+    // 只更新已存在设备的 lastSeen；设备记录由 createSession 负责创建
+    await Device.updateOne({ deviceId }, { lastSeen: new Date() });
+
+    res.json({ success: true });
   } catch (error) {
     next(error);
   }

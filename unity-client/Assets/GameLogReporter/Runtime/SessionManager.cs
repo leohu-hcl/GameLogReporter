@@ -118,6 +118,29 @@ namespace GameLogReporter
         }
         
         /// <summary>
+        /// 发送一次心跳，刷新服务端 lastSeen（保持设备活跃状态在线）。
+        /// 失败静默忽略——丢一两次心跳由服务端活跃阈值容忍。
+        /// </summary>
+        public IEnumerator Heartbeat()
+        {
+            string url = $"{_apiUrl}/heartbeat";
+            var body = new HeartbeatRequest { deviceId = GenerateDeviceId() };
+
+            yield return _httpClient.Post<HeartbeatRequest>(
+                url,
+                body,
+                (_) => { },
+                (error) => _sdkLogger?.Debug($"Heartbeat failed: {error.message}", "SessionManager")
+            );
+        }
+
+        [Serializable]
+        private class HeartbeatRequest
+        {
+            public string deviceId;
+        }
+
+        /// <summary>
         /// 生成设备唯一标识
         /// </summary>
         private string GenerateDeviceId()

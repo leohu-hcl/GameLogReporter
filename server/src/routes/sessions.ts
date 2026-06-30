@@ -9,7 +9,7 @@ import {
   getRecentSessions,
   closeInactiveSessions,
 } from '../controllers/sessionController';
-import { createSession } from '../controllers/logController';
+import { createSession, heartbeat } from '../controllers/logController';
 import { authenticateToken } from '../middleware/auth';
 import { logRateLimiter } from '../middleware/rateLimiter';
 
@@ -24,6 +24,13 @@ const router = Router();
  * 创建新会话（Unity客户端调用，不需要认证）
  */
 router.post('/', logRateLimiter, createSession);
+
+/**
+ * POST /api/sessions/heartbeat
+ * 设备心跳，刷新 lastSeen（Unity客户端调用，不需要认证）
+ * 注意：放在 /:sessionId 之前，避免 'heartbeat' 被当作 sessionId
+ */
+router.post('/heartbeat', logRateLimiter, heartbeat);
 
 /**
  * POST /api/sessions/admin/close-inactive

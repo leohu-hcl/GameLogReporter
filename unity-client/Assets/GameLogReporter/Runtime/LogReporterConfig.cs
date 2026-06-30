@@ -33,6 +33,10 @@ namespace GameLogReporter
         [Tooltip("单批上报的日志条数上限")]
         public int batchSize = 50;
 
+        [Header("Heartbeat")]
+        [Tooltip("心跳间隔（秒）。设备在线时定时上报，使服务端活跃状态保持在线。需 < 服务端活跃阈值(90s)")]
+        public float heartbeatInterval = 30f;
+
         [Header("Deduplication")]
         [Tooltip("启用日志去重")]
         public bool enableDeduplication = true;

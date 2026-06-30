@@ -107,6 +107,9 @@ namespace GameLogReporter
         // ponytail: 单消费者（主线程）假设——只有 DrainIncoming 出队，勿在他处消费
         private readonly ConcurrentQueue<LogData> _incomingQueue = new ConcurrentQueue<LogData>();
         private float _lastBatchTime;
+        // 下次心跳的绝对时刻（Time.time 基准）。发完即重设，切后台 Time.time 暂停，
+        // 回前台最多触发一次后立刻重设，天然避免「积压补发」连续多条心跳。
+        private float _nextHeartbeatTime;
         private bool _isInitialized = false;
 
         // 最大缓存限制
@@ -226,6 +229,14 @@ namespace GameLogReporter
             {
                 FlushLogs();
                 _lastBatchTime = Time.time;
+            }
+
+            // 定时心跳：刷新服务端 lastSeen，保持活跃状态在线。
+            // Time.time 切后台时暂停，故回前台不会积压补发多条。
+            if (Time.time >= _nextHeartbeatTime)
+            {
+                StartCoroutine(_sessionManager.Heartbeat());
+                _nextHeartbeatTime = Time.time + _config.heartbeatInterval;
             }
 
             // 尝试发送离线队列中的日志（带重试延迟）

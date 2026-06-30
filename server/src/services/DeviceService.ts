@@ -4,6 +4,21 @@ import { Log } from '../models/Log';
 import { AppError } from '../middleware/errorHandler';
 
 export class DeviceService {
+  // 活跃阈值：lastSeen 距今在此窗口内即视为活跃。
+  // 必须 > SDK 心跳间隔（30s），容忍丢 2 次心跳。
+  // ponytail: 硬编码常量，单一消费点；真要运行时可调再提升为配置
+  static readonly ACTIVE_THRESHOLD_MS = 90_000;
+
+  /** 设备是否活跃：lastSeen 在阈值窗口内 */
+  private static isDeviceActive(lastSeen: Date): boolean {
+    return Date.now() - new Date(lastSeen).getTime() < this.ACTIVE_THRESHOLD_MS;
+  }
+
+  /** 活跃设备的 Mongo 查询条件：lastSeen >= now - 阈值 */
+  private static activeQuery() {
+    return { lastSeen: { $gte: new Date(Date.now() - this.ACTIVE_THRESHOLD_MS) } };
+  }
+
   /**
    * 获取所有设备列表
    */
@@ -16,7 +31,9 @@ export class DeviceService {
       query.platform = filters.platform;
     }
     if (filters?.isActive !== undefined) {
-      query.isActive = filters.isActive;
+      // 活跃状态由 lastSeen 派生，筛选转成时间范围查询
+      const threshold = new Date(Date.now() - this.ACTIVE_THRESHOLD_MS);
+      query.lastSeen = filters.isActive ? { $gte: threshold } : { $lt: threshold };
     }
 
     const devices = await Device.find(query)
@@ -35,6 +52,7 @@ export class DeviceService {
 
         return {
           ...device.toObject(),
+          isActive: this.isDeviceActive(device.lastSeen),
           sessionCount,
           logCount,
         };
@@ -89,7 +107,7 @@ export class DeviceService {
     );
 
     return {
-      device,
+      device: { ...device.toObject(), isActive: this.isDeviceActive(device.lastSeen) },
       sessions: enrichedSessions,
       pagination: {
         page,
@@ -131,7 +149,7 @@ export class DeviceService {
     });
 
     return {
-      device,
+      device: { ...device.toObject(), isActive: this.isDeviceActive(device.lastSeen) },
       stats: {
         sessionCount,
         activeSessions,
@@ -185,7 +203,7 @@ export class DeviceService {
    */
   static async getDevicesSummary() {
     const totalDevices = await Device.countDocuments();
-    const activeDevices = await Device.countDocuments({ isActive: true });
+    const activeDevices = await Device.countDocuments(this.activeQuery());
     const totalSessions = await Session.countDocuments();
     const activeSessions = await Session.countDocuments({ status: 'active' });
     const totalLogs = await Log.countDocuments();
@@ -200,6 +218,7 @@ export class DeviceService {
         const sessionCount = await Session.countDocuments({ deviceId: device.deviceId });
         return {
           ...device.toObject(),
+          isActive: this.isDeviceActive(device.lastSeen),
           sessionCount,
         };
       })

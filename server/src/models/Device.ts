@@ -8,7 +8,6 @@ export interface IDevice extends Document {
   unityVersion?: string;
   firstSeen: Date;
   lastSeen: Date;
-  isActive: boolean;
 }
 
 const DeviceSchema = new Schema<IDevice>(
@@ -41,12 +40,8 @@ const DeviceSchema = new Schema<IDevice>(
     lastSeen: {
       type: Date,
       required: true,
-      default: () => new Date()
-    },
-    isActive: {
-      type: Boolean,
-      required: true,
-      default: true
+      default: () => new Date(),
+      index: true
     }
   },
   {
@@ -55,7 +50,6 @@ const DeviceSchema = new Schema<IDevice>(
   }
 );
 
-// 创建复合索引以提高查询性能
-DeviceSchema.index({ deviceId: 1, isActive: 1 });
+// deviceId 已是 unique 索引；lastSeen 单列索引支撑「活跃 = lastSeen 在阈值内」的派生查询
 
 export const Device = mongoose.model<IDevice>('Device', DeviceSchema);
