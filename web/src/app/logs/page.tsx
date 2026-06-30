@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LogsTable } from '@/components/logs/LogsTable';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { LogFilters } from '@/types';
 
 /**
@@ -41,7 +42,7 @@ export default function LogsPage() {
   return (
     <ProtectedRoute>
       <Layout>
-        <Suspense fallback={<div>加载中...</div>}>
+        <Suspense fallback={<LoadingSpinner />}>
           <LogsPageContent />
         </Suspense>
       </Layout>
