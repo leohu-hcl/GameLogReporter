@@ -58,13 +58,23 @@ export class SessionService {
     const total = await Session.countDocuments({ deviceId });
     const totalPages = Math.ceil(total / limit);
 
-    // 为每个会话计算日志数
+    // 为每个会话计算日志数、错误数、警告数
     const enrichedSessions = await Promise.all(
       sessions.map(async (session) => {
         const logCount = await Log.countDocuments({ sessionId: session.sessionId });
+        const errorCount = await Log.countDocuments({
+          sessionId: session.sessionId,
+          level: { $in: ['error', 'critical'] },
+        });
+        const warningCount = await Log.countDocuments({
+          sessionId: session.sessionId,
+          level: 'warning',
+        });
         return {
           ...session.toObject(),
           logCount,
+          errorCount,
+          warningCount,
         };
       })
     );
@@ -204,11 +214,11 @@ export class SessionService {
         const logCount = await Log.countDocuments({ sessionId: session.sessionId });
         const errorCount = await Log.countDocuments({
           sessionId: session.sessionId,
-          logType: 'ERROR',
+          level: { $in: ['error', 'critical'] },
         });
         const warningCount = await Log.countDocuments({
           sessionId: session.sessionId,
-          logType: 'WARNING',
+          level: 'warning',
         });
 
         return {

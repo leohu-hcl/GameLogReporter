@@ -1,6 +1,6 @@
 import { AlertRule, IAlertRule, AlertCondition } from '../models/AlertRule';
 import { AlertHistory, IAlertHistory } from '../models/AlertHistory';
-import { Log, LogType, LogLevel } from '../models/Log';
+import { Log, LogLevel } from '../models/Log';
 import { setupLogger } from '../config/logger';
 import { broadcastStatsUpdate } from './WebSocketService';
 import * as statsService from './StatsService';
@@ -161,9 +161,12 @@ async function checkSingleAlertRule(rule: IAlertRule): Promise<void> {
       // 统计日志数量
       count = await Log.countDocuments(filter);
     } else if (condition.field === 'errorRate') {
-      // 计算错误率
-      const total = await Log.countDocuments({ ...filter, logType: { $ne: LogType.ERROR } });
-      const errors = await Log.countDocuments({ ...filter, logType: LogType.ERROR });
+      // 计算错误率：错误 = level ∈ {error, critical}，分母为全部日志
+      const total = await Log.countDocuments({ ...filter });
+      const errors = await Log.countDocuments({
+        ...filter,
+        level: { $in: [LogLevel.ERROR, LogLevel.CRITICAL] },
+      });
       count = total > 0 ? (errors / total) * 100 : 0;
     }
 

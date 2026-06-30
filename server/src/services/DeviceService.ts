@@ -95,7 +95,7 @@ export class DeviceService {
         const logCount = await Log.countDocuments({ sessionId: session.sessionId });
         const errorCount = await Log.countDocuments({
           sessionId: session.sessionId,
-          logType: 'error',
+          level: { $in: ['error', 'critical'] },
         });
 
         return {
@@ -140,12 +140,12 @@ export class DeviceService {
 
     const errorCount = await Log.countDocuments({
       sessionId: { $in: sessionIds },
-      logType: 'error',
+      level: { $in: ['error', 'critical'] },
     });
 
     const warningCount = await Log.countDocuments({
       sessionId: { $in: sessionIds },
-      logType: 'warning',
+      level: 'warning',
     });
 
     return {
