@@ -252,6 +252,33 @@ namespace GameLogReporter
 
         private void OnApplicationQuit()
         {
+            // 落盘所有未发日志（退出时异步 HTTP 基本发不完，落盘是唯一可靠做法）
+            PersistUnsentLogs();
+
+            // 结束会话（发送请求即可，不强求送达；服务端有新会话作废 + 超时清理兜底）
+            if (_sessionManager != null && _logCollector != null && !string.IsNullOrEmpty(_logCollector.GetSessionId()))
+            {
+                StartCoroutine(_sessionManager.EndSession(_logCollector.GetSessionId()));
+            }
+        }
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            // 移动端切后台可能直接被系统杀死，pause 是最后的可靠时机——落盘防丢。
+            // 不在此结束会话：后台后可能恢复，提前结束会把存活会话误关，
+            // 会话生命周期统一交给服务端（新会话作废 + 超时清理）。
+            if (pauseStatus)
+            {
+                PersistUnsentLogs();
+            }
+        }
+
+        /// <summary>
+        /// 汇总并落盘所有未发日志（入口队列残留 + 去重缓存 + 内存队列 + 离线队列），
+        /// 交给下次启动补发。供 OnApplicationQuit / OnApplicationPause 复用。
+        /// </summary>
+        private void PersistUnsentLogs()
+        {
             // 0. 先 drain 入口队列，确保后台线程残留日志也纳入
             DrainIncoming();
 
@@ -265,8 +292,7 @@ namespace GameLogReporter
                 }
             }
 
-            // 2. 汇总所有未发日志（内存队列 + 离线队列）落盘，交给下次启动补发。
-            //    退出时的异步 HTTP 基本发不完，落盘是唯一可靠的做法。
+            // 2. 汇总所有未发日志（内存队列 + 离线队列）落盘
             if (_logStore != null)
             {
                 var unsent = new List<LogData>(_logQueue);
@@ -280,12 +306,6 @@ namespace GameLogReporter
             {
                 // 未启用持久化：尽力异步发一次（不保证送达）
                 FlushLogs();
-            }
-
-            // 3. 结束会话（发送请求即可，不强求送达；服务端有超时清理）
-            if (_sessionManager != null && _logCollector != null && !string.IsNullOrEmpty(_logCollector.GetSessionId()))
-            {
-                StartCoroutine(_sessionManager.EndSession(_logCollector.GetSessionId()));
             }
         }
 

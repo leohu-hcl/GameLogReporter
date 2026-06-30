@@ -119,6 +119,13 @@ export async function createSession(req: Request, res: Response, next: NextFunct
       await device.save();
     }
     
+    // 同一设备开启新会话即视为旧会话作废：先关闭该设备所有仍 active 的会话，
+    // 避免悬挂的"进行中"会话堆积（最新会话的关闭仍由客户端结束或清理任务负责）。
+    await Session.updateMany(
+      { deviceId, status: 'active' },
+      { status: 'ended', endTime: new Date() }
+    );
+
     // 创建新会话
     const sessionId = uuidv4();
     const session = new Session({
@@ -127,7 +134,7 @@ export async function createSession(req: Request, res: Response, next: NextFunct
       gameId,
       userId
     });
-    
+
     await session.save();
     
     res.status(201).json({

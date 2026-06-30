@@ -11,7 +11,8 @@
     "test": "jest",
     "seed": "ts-node-dev --transpile-only src/scripts/seed-admin.ts",
     "seed:logs": "ts-node-dev --transpile-only src/scripts/seed-logs.ts",
-    "clean:test-logs": "ts-node-dev --transpile-only src/scripts/clean-test-logs.ts"
+    "clean:test-logs": "ts-node-dev --transpile-only src/scripts/clean-test-logs.ts",
+    "close:stale-sessions": "ts-node-dev --transpile-only src/scripts/close-stale-sessions.ts"
   },
   "keywords": [
     "game",
