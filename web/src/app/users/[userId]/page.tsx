@@ -51,7 +51,7 @@ export default function EditUserPage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredRole="admin">
         <Layout>
           <div className="flex h-96 items-center justify-center">
             <LoadingSpinner />
@@ -63,7 +63,7 @@ export default function EditUserPage() {
 
   if (error || !user) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredRole="admin">
         <Layout>
           <Alert variant="destructive">
             <AlertDescription>
@@ -76,7 +76,7 @@ export default function EditUserPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRole="admin">
       <Layout>
         <div className="max-w-2xl mx-auto space-y-6">
           <PageHeader 

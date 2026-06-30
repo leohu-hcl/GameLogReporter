@@ -56,7 +56,7 @@ export default function UsersPage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredRole="admin">
         <Layout>
           <div className="flex h-96 items-center justify-center">
             <LoadingSpinner />
@@ -68,7 +68,7 @@ export default function UsersPage() {
 
   if (error || !data) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredRole="admin">
         <Layout>
           <Alert variant="destructive">
             <AlertDescription>
@@ -145,7 +145,7 @@ export default function UsersPage() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRole="admin">
       <Layout>
         <div className="space-y-6">
           {/* 页面标题 */}

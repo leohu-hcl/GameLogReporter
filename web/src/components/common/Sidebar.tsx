@@ -23,7 +23,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     { title: '仪表板', code: 'OVERVIEW', href: '/dashboard', icon: BarChart3 },
     { title: '日志', code: 'LOGS', href: '/logs', icon: FileText },
     { title: '设备', code: 'DEVICES', href: '/devices', icon: Smartphone },
-    { title: '告警', code: 'ALERTS', href: '/alerts', icon: Bell },
+    { title: '告警', code: 'ALERTS', href: '/alerts', icon: Bell, wip: true },
     ...(user?.role === 'admin'
       ? [{ title: '用户管理', code: 'USERS', href: '/users', icon: Users }]
       : []),
@@ -100,16 +100,22 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     strokeWidth={active ? 2.4 : 2}
                   />
                   <span className="flex-1 font-medium">{item.title}</span>
-                  <span
-                    className={cn(
-                      'font-mono text-[0.6rem] tracking-wider transition-opacity',
-                      active
-                        ? 'text-primary/70'
-                        : 'text-muted-foreground/40 group-hover:text-muted-foreground/70'
-                    )}
-                  >
-                    {item.code}
-                  </span>
+                  {'wip' in item && item.wip ? (
+                    <span className="rounded-full border border-warning/30 bg-warning/10 px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-wider text-warning">
+                      开发中
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        'font-mono text-[0.6rem] tracking-wider transition-opacity',
+                        active
+                          ? 'text-primary/70'
+                          : 'text-muted-foreground/40 group-hover:text-muted-foreground/70'
+                      )}
+                    >
+                      {item.code}
+                    </span>
+                  )}
                 </div>
               </Link>
             );

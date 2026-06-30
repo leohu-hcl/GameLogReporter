@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
+import { authService } from '@/api/auth';
 
 export default function ResetPasswordPage() {
   const [step, setStep] = useState<'request' | 'reset'>('request');
@@ -31,12 +33,14 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      // TODO: 调用实际的密码重置请求 API
-      setSuccess('重置链接已发送到您的邮箱，请检查并点击链接');
+      await authService.requestPasswordReset(email);
+      setSuccess('如果该邮箱已注册，重置令牌将发送到您的邮箱，请查收');
+      toast.success('重置请求已提交');
       setStep('reset');
     } catch (err) {
       const message = err instanceof Error ? err.message : '请求失败，请重试';
       setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -64,14 +68,16 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      // TODO: 调用实际的密码重置 API
+      await authService.verifyAndResetPassword(resetToken, passwords.password);
       setSuccess('密码重置成功，请用新密码登录');
+      toast.success('密码重置成功');
       setTimeout(() => {
         window.location.href = '/auth/login';
       }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : '密码重置失败，请重试';
       setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

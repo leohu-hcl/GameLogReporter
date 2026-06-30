@@ -7,7 +7,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'admin' | 'user';
+  requiredRole?: 'admin' | 'editor' | 'viewer';
 }
 
 /**
@@ -22,14 +22,14 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   useEffect(() => {
     if (isLoading) return;
 
-    // 未认证，重定向到登录
+    // 未认证，重定向到登录（带上目标路径，登录后回跳）
     if (!isAuthenticated) {
-      router.push(`/auth/login?redirect=${pathname}`);
+      router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 
-    // 检查权限
-    if (requiredRole === 'admin' && user?.role !== 'admin') {
+    // 检查权限：角色不足时退回仪表板
+    if (requiredRole && user?.role !== requiredRole) {
       router.push('/dashboard');
     }
   }, [isAuthenticated, isLoading, user, router, pathname, requiredRole]);
@@ -39,6 +39,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // 权限不足时不闪烁渲染受保护内容
+  if (requiredRole && user?.role !== requiredRole) {
     return null;
   }
 

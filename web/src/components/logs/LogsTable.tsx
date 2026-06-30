@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useLogsList } from '@/hooks/useLogsQueries';
 import { logService } from '@/api/logs';
 import { LogFilters, Log } from '@/types';
@@ -98,6 +99,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [startDate, setStartDate] = useState(
     initialFilters?.startTime 
       ? format(new Date(initialFilters.startTime), 'yyyy-MM-dd') 
@@ -275,32 +277,41 @@ export function LogsTable({ initialFilters }: LogTableProps) {
   const performExport = async (params: { format: 'json' | 'text'; sortOrder: 'asc' | 'desc'; stackMode: 'all' | 'errors' | 'none' }) => {
     if (!data || !data.items) return;
 
-    // 构建完整的筛选条件
-    const exportFilters: LogFilters = {
-      page: 1,
-      limit: 100,
-      logType: filters.logType,
-      level: filters.level,
-      sessionId: filters.sessionId,
-      startTime: filters.startTime,
-      endTime: filters.endTime,
-      search: search || undefined,
-    };
+    setIsExporting(true);
+    const toastId = toast.loading('正在导出日志…');
+    try {
+      // 构建完整的筛选条件
+      const exportFilters: LogFilters = {
+        page: 1,
+        limit: 100,
+        logType: filters.logType,
+        level: filters.level,
+        sessionId: filters.sessionId,
+        startTime: filters.startTime,
+        endTime: filters.endTime,
+        search: search || undefined,
+      };
 
-    // 获取所有满足条件的日志
-    let allLogs = await fetchAllFilteredLogs(exportFilters);
+      // 获取所有满足条件的日志
+      const allLogs = await fetchAllFilteredLogs(exportFilters);
 
-    // 按时间排序
-    allLogs.sort((a, b) => {
-      const timeA = new Date(a.createdAt || a.timestamp).getTime();
-      const timeB = new Date(b.createdAt || b.timestamp).getTime();
-      return params.sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
-    });
+      // 按时间排序
+      allLogs.sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.timestamp).getTime();
+        const timeB = new Date(b.createdAt || b.timestamp).getTime();
+        return params.sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+      });
 
-    if (params.format === 'json') {
-      exportAsJSON(allLogs, params.stackMode);
-    } else {
-      exportAsText(allLogs, params.stackMode, params.sortOrder);
+      if (params.format === 'json') {
+        exportAsJSON(allLogs, params.stackMode);
+      } else {
+        exportAsText(allLogs, params.stackMode, params.sortOrder);
+      }
+      toast.success(`已导出 ${allLogs.length} 条日志`, { id: toastId });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '导出失败，请重试', { id: toastId });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -371,6 +382,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
   const handleCopySessionId = (sessionId: string) => {
     navigator.clipboard.writeText(sessionId);
     setCopiedId(sessionId);
+    toast.success('会话ID已复制');
   };
 
   const handleViewDetail = (log: Log) => {
@@ -603,11 +615,11 @@ export function LogsTable({ initialFilters }: LogTableProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => setDownloadDialogOpen(true)}
-                disabled={!data || !data.items || data.items.length === 0}
+                disabled={!data || !data.items || data.items.length === 0 || isExporting}
                 className="gap-2"
               >
-                <Download className="h-4 w-4" />
-                下载
+                <Download className={`h-4 w-4 ${isExporting ? 'animate-pulse' : ''}`} />
+                {isExporting ? '导出中…' : '下载'}
               </Button>
             </div>
           </div>

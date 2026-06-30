@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { Menu, LogOut, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { useSocketStatus } from '@/hooks/useSocketStatus';
+import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   onSidebarToggle: () => void;
@@ -37,6 +39,9 @@ export function Header({ onSidebarToggle }: HeaderProps) {
   const roleLabel =
     user?.role === 'admin' ? '管理员' : user?.role === 'editor' ? '编辑者' : '查看者';
 
+  // 实时连接状态（Socket.io），驱动下方在线指示
+  const online = useSocketStatus();
+
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="flex h-16 items-center justify-between px-4 md:px-8">
@@ -63,13 +68,18 @@ export function Header({ onSidebarToggle }: HeaderProps) {
 
         {/* 右侧 */}
         <div className="flex items-center gap-3">
-          {/* 实时状态 */}
+          {/* 实时状态（反映真实 Socket 连接） */}
           <div className="hidden items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 lg:flex">
-            <Activity className="h-3.5 w-3.5 text-success" />
+            <Activity className={cn('h-3.5 w-3.5', online ? 'text-success' : 'text-muted-foreground')} />
             <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
-              系统在线
+              {online ? '系统在线' : '连接断开'}
             </span>
-            <span className="pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-success text-success" />
+            <span
+              className={cn(
+                'inline-block h-1.5 w-1.5 rounded-full',
+                online ? 'pulse-dot bg-success text-success' : 'bg-muted-foreground'
+              )}
+            />
           </div>
 
           {user && (

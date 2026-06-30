@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +12,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Terminal } from 'lucide-react';
 
+interface LoginFormProps {
+  /** 登录成功后跳转目标，默认 /dashboard */
+  redirectTo?: string;
+}
+
 /**
  * 登录表单组件
  */
-export function LoginForm() {
+export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
   const router = useRouter();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -52,7 +58,8 @@ export function LoginForm() {
         localStorage.setItem('lastEmail', formData.email);
       }
 
-      router.push('/dashboard');
+      toast.success('登录成功');
+      router.push(redirectTo);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '登录失败，请重试';
       setError(errorMessage);

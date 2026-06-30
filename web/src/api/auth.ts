@@ -56,7 +56,8 @@ export const authService = {
    * 验证和重置密码
    */
   verifyAndResetPassword: async (token: string, password: string): Promise<void> => {
-    await apiClient.post('/auth/verify-reset', { token, password });
+    // 服务端字段名为 newPassword
+    await apiClient.post('/auth/verify-and-reset', { token, newPassword: password });
   },
 
   /**

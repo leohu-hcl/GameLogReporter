@@ -41,7 +41,7 @@ export default function CreateUserPage() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredRole="admin">
       <Layout>
         <div className="max-w-2xl mx-auto space-y-4">
           <PageHeader title="创建新用户" description="添加新用户到系统中">

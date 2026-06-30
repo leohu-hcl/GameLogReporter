@@ -12,7 +12,9 @@ interface LayoutProps {
  * 主布局组件
  */
 export function Layout({ children }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // 桌面端侧边栏由 md:translate-x-0 强制常显，该 state 仅控制移动端抽屉。
+  // 默认 false：移动端首屏不再被抽屉遮挡。
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

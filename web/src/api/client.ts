@@ -8,6 +8,8 @@ import { ApiError } from '@/types/common';
 
 class ApiClient {
   private instance: AxiosInstance;
+  // 单飞刷新：并发 401 共用同一个刷新请求，避免重复刷新与竞态
+  private refreshPromise: Promise<string> | null = null;
 
   constructor(baseURL: string = config.apiUrl) {
     this.instance = axios.create({
@@ -59,25 +61,63 @@ class ApiClient {
     return response.data;
   }
 
-  private async responseErrorInterceptor(error: any): Promise<never> {
+  private async responseErrorInterceptor(error: any): Promise<any> {
     if (!error.response) {
       console.error('Network error:', error);
       throw new ApiError('Network connection failed', 0, 0);
     }
 
     const { status, data } = error.response;
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retried?: boolean };
 
-    // 处理 401 - Token 过期
-    if (status === 401) {
-      // TODO: 实现 Token 刷新逻辑
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/auth/login';
+    // 处理 401 - 尝试用 refreshToken 刷新一次，成功则重放原请求
+    if (status === 401 && typeof window !== 'undefined' && !originalRequest._retried) {
+      // 刷新端点自身返回 401 不再递归
+      const isRefreshCall = originalRequest.url?.includes('/auth/refresh');
+      const refreshToken = localStorage.getItem('refreshToken');
+
+      if (refreshToken && !isRefreshCall) {
+        originalRequest._retried = true;
+        try {
+          const newToken = await this.refreshAccessToken(refreshToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return this.instance.request(originalRequest);
+        } catch {
+          this.forceLogout();
+        }
+      } else {
+        this.forceLogout();
       }
     }
 
     throw new ApiError(data?.message || 'API Error', data?.code || status, status, data?.details);
+  }
+
+  /**
+   * 单飞刷新 accessToken：并发请求复用同一个 in-flight Promise。
+   */
+  private refreshAccessToken(refreshToken: string): Promise<string> {
+    if (!this.refreshPromise) {
+      this.refreshPromise = axios
+        .post<{ data: { accessToken: string } }>(`${config.apiUrl}/auth/refresh`, { refreshToken })
+        .then((res) => {
+          const accessToken = res.data.data.accessToken;
+          localStorage.setItem('accessToken', accessToken);
+          return accessToken;
+        })
+        .finally(() => {
+          this.refreshPromise = null;
+        });
+    }
+    return this.refreshPromise;
+  }
+
+  private forceLogout(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    // 携带当前路径，登录后可回跳
+    const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `/auth/login?redirect=${redirect}`;
   }
 
   private generateRequestId(): string {

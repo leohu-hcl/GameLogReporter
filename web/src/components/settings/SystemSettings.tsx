@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useSystemConfig, useUpdateSystemConfig, useTriggerSessionCleanup, useSystemStats } from '@/hooks/useConfigQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,20 +57,37 @@ export function SystemSettings() {
 
   const handleUpdateConfig = () => {
     if (cleanupInterval === '' || inactiveHours === '') {
-      alert('请填写所有字段');
+      toast.error('请填写所有字段');
       return;
     }
 
-    updateConfig({
-      sessionCleanupInterval: Number(cleanupInterval),
-      inactiveSessionHours: Number(inactiveHours),
-    });
+    updateConfig(
+      {
+        sessionCleanupInterval: Number(cleanupInterval),
+        inactiveSessionHours: Number(inactiveHours),
+      },
+      {
+        onSuccess: () => toast.success('配置已更新'),
+        onError: (err) =>
+          toast.error(err instanceof Error ? err.message : '配置更新失败，请重试'),
+      }
+    );
   };
 
   const handleManualCleanup = () => {
-    if (window.confirm('确认立即执行不活跃会话清理任务？')) {
-      triggerCleanup(undefined);
-    }
+    // 用带操作按钮的 toast 替代原生 confirm，保持风格统一
+    toast('确认立即执行不活跃会话清理任务？', {
+      action: {
+        label: '执行',
+        onClick: () =>
+          triggerCleanup(undefined, {
+            onSuccess: () => toast.success('清理任务已触发'),
+            onError: (err) =>
+              toast.error(err instanceof Error ? err.message : '清理失败，请重试'),
+          }),
+      },
+      cancel: { label: '取消', onClick: () => {} },
+    });
   };
 
   const statCards = [
