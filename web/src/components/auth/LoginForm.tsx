@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Terminal } from 'lucide-react';
+import { ApiError } from '@/types/common';
 
 interface LoginFormProps {
   /** 登录成功后跳转目标，默认 /dashboard */
@@ -61,7 +62,21 @@ export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
       toast.success('登录成功');
       router.push(redirectTo);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '登录失败，请重试';
+      // 按状态码给出可读的中文提示，而非直接抛后端英文/通用语
+      let errorMessage = '登录失败，请重试';
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          errorMessage = '邮箱或密码错误';
+        } else if (err.status === 429) {
+          errorMessage = '登录尝试过于频繁，请稍后再试';
+        } else if (err.status === 0) {
+          errorMessage = '无法连接服务器，请检查网络';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error && err.message) {
+        errorMessage = err.message;
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);

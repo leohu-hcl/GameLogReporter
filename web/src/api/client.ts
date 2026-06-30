@@ -70,13 +70,21 @@ class ApiClient {
     const { status, data } = error.response;
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retried?: boolean };
 
+    // 认证端点自身的 401/4xx 是“凭证错误”，不是“会话过期”——直接抛给调用方显示，
+    // 不触发刷新/登出跳转，否则登录失败会被当成 token 过期而重定向回登录页。
+    const url = originalRequest.url || '';
+    const isAuthEndpoint =
+      url.includes('/auth/login') ||
+      url.includes('/auth/register') ||
+      url.includes('/auth/refresh') ||
+      url.includes('/auth/reset-password') ||
+      url.includes('/auth/verify-and-reset');
+
     // 处理 401 - 尝试用 refreshToken 刷新一次，成功则重放原请求
-    if (status === 401 && typeof window !== 'undefined' && !originalRequest._retried) {
-      // 刷新端点自身返回 401 不再递归
-      const isRefreshCall = originalRequest.url?.includes('/auth/refresh');
+    if (status === 401 && typeof window !== 'undefined' && !originalRequest._retried && !isAuthEndpoint) {
       const refreshToken = localStorage.getItem('refreshToken');
 
-      if (refreshToken && !isRefreshCall) {
+      if (refreshToken) {
         originalRequest._retried = true;
         try {
           const newToken = await this.refreshAccessToken(refreshToken);
