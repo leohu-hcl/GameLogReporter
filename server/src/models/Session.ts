@@ -9,6 +9,7 @@ export interface ISession extends Document {
   status: 'active' | 'ended';
   gameId?: string;
   userId?: string;
+  version?: string;
 }
 
 const SessionSchema = new Schema<ISession>(
@@ -47,6 +48,9 @@ const SessionSchema = new Schema<ISession>(
     userId: {
       type: String,
       index: true
+    },
+    version: {
+      type: String
     }
   },
   {

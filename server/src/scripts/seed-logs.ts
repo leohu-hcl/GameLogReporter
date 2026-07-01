@@ -35,8 +35,7 @@ async function seedLogs() {
           browser: 'Chrome 120.0'
         },
         tags: ['database', 'connection'],
-        timestamp: new Date().toISOString(),
-        clientVersion: '1.0.0'
+        timestamp: new Date().toISOString()
       },
       {
         logId: `test-log-${Date.now()}-2`,
@@ -50,8 +49,7 @@ async function seedLogs() {
           threshold: 3000
         },
         tags: ['performance'],
-        timestamp: new Date(Date.now() - 60000).toISOString(),
-        clientVersion: '1.0.0'
+        timestamp: new Date(Date.now() - 60000).toISOString()
       },
       {
         logId: `test-log-${Date.now()}-3`,
@@ -65,8 +63,7 @@ async function seedLogs() {
           timestamp: Date.now()
         },
         tags: ['user-action'],
-        timestamp: new Date(Date.now() - 120000).toISOString(),
-        clientVersion: '1.0.0'
+        timestamp: new Date(Date.now() - 120000).toISOString()
       },
       {
         logId: `test-log-${Date.now()}-4`,
@@ -80,8 +77,7 @@ async function seedLogs() {
           platform: 'web'
         },
         tags: ['startup'],
-        timestamp: new Date(Date.now() - 300000).toISOString(),
-        clientVersion: '1.0.0'
+        timestamp: new Date(Date.now() - 300000).toISOString()
       },
       {
         logId: `test-log-${Date.now()}-5`,
@@ -99,8 +95,7 @@ async function seedLogs() {
           gc: false
         },
         tags: ['memory', 'critical'],
-        timestamp: new Date(Date.now() - 600000).toISOString(),
-        clientVersion: '1.0.0'
+        timestamp: new Date(Date.now() - 600000).toISOString()
       }
     ];
 

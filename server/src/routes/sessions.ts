@@ -9,7 +9,7 @@ import {
   getRecentSessions,
   closeInactiveSessions,
 } from '../controllers/sessionController';
-import { createSession, heartbeat } from '../controllers/logController';
+import { createSession, heartbeat, updateSessionVersion } from '../controllers/logController';
 import { authenticateToken } from '../middleware/auth';
 import { logRateLimiter } from '../middleware/rateLimiter';
 
@@ -31,6 +31,13 @@ router.post('/', logRateLimiter, createSession);
  * 注意：放在 /:sessionId 之前，避免 'heartbeat' 被当作 sessionId
  */
 router.post('/heartbeat', logRateLimiter, heartbeat);
+
+/**
+ * POST /api/sessions/:sessionId/version
+ * 补写会话版本号（Unity客户端版本异步就绪后回填，不需要认证）
+ * 注意：放在 /:sessionId 之前不必要（这里是子路径），但与其他客户端接口归在一处
+ */
+router.post('/:sessionId/version', logRateLimiter, updateSessionVersion);
 
 /**
  * POST /api/sessions/admin/close-inactive

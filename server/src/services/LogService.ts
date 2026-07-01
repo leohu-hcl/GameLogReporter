@@ -16,7 +16,6 @@ export interface CreateLogDto {
   metadata?: Record<string, any>;
   tags?: string[];
   timestamp?: Date;
-  clientVersion?: string;
 }
 
 export interface GetLogsQuery {

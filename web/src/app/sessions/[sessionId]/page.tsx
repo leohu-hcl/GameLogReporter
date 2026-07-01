@@ -351,6 +351,10 @@ export default function SessionDetailPage() {
                   </Badge>
                 ),
               },
+              {
+                label: '客户端版本',
+                value: session.version || '-',
+              },
             ]}
           />
 

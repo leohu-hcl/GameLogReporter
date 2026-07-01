@@ -50,8 +50,7 @@ namespace GameLogReporter
         public Dictionary<string, object> metadata;
         public string[] tags;
         public DateTime timestamp;
-        public string clientVersion;
-        // 设备信息由服务端按会话存储，不随每条日志发送
+        // 设备信息与客户端版本由服务端按会话存储，不随每条日志发送
     }
 
     /// <summary>
@@ -90,7 +89,6 @@ namespace GameLogReporter
         public Dictionary<string, object> metadata;
         public string[] tags;
         public DateTime timestamp;
-        public string clientVersion;
     }
 
     /// <summary>

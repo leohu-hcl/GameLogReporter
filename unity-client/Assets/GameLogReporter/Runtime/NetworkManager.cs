@@ -169,8 +169,7 @@ namespace GameLogReporter
                     stackTrace = log.stackTrace,
                     metadata = log.metadata,
                     tags = log.tags,
-                    timestamp = log.timestamp,
-                    clientVersion = log.clientVersion
+                    timestamp = log.timestamp
                 };
             }
             

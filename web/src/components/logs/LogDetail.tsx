@@ -231,13 +231,6 @@ export function LogDetail({ logId }: LogDetailProps) {
               {log.message}
             </p>
           </div>
-
-          {log.clientVersion && (
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground">客户端版本</h3>
-              <p className="text-sm text-foreground">{log.clientVersion}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
 

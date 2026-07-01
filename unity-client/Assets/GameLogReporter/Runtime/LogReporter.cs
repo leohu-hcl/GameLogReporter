@@ -96,6 +96,25 @@ namespace GameLogReporter
             }
         }
 
+        /// <summary>
+        /// 上报客户端真实版本号。版本内容由调用方自行拼接（如"包x.y.z / 资源abc"），
+        /// 服务端按会话原样存储、Web 原样显示。
+        /// 通常在版本异步就绪后（如读完 version.txt / 加载完资源版本配置）调用一次。
+        /// 会话已建立则立即补写；尚未建立则暂存，建会话成功后自动补发。
+        /// </summary>
+        public static void SetVersion(string version)
+        {
+            var inst = Instance;
+            inst._version = version;
+
+            // 会话已就绪则立即补写；否则 RequestSessionId 成功回调里会用暂存值补发。
+            string sessionId = inst._logCollector?.GetSessionId();
+            if (!string.IsNullOrEmpty(sessionId) && inst._sessionManager != null)
+            {
+                inst.StartCoroutine(inst._sessionManager.UpdateVersion(sessionId, version));
+            }
+        }
+
         private LogReporterConfig _config;
 
         private NetworkManager _networkManager;
@@ -123,6 +142,10 @@ namespace GameLogReporter
 
         // 会话管理器
         private SessionManager _sessionManager;
+
+        // 客户端真实版本号（包版本/资源版本等，由游戏侧异步就绪后经 SetVersion 推入）。
+        // 版本晚于建会话就绪：已建会话则立即补写，未建则暂存于此，建会话成功后补发。
+        private string _version;
 
         // 离线日志持久化
         private LogStore _logStore;
@@ -321,10 +344,6 @@ namespace GameLogReporter
         /// </summary>
         public void ReportLog(LogData logData)
         {
-            if (string.IsNullOrEmpty(logData.clientVersion))
-            {
-                logData.clientVersion = _config.clientVersion;
-            }
             logData.timestamp = DateTime.UtcNow;
 
             if (string.IsNullOrEmpty(logData.sessionId))
@@ -481,6 +500,12 @@ namespace GameLogReporter
                 {
                     _logCollector?.SetSession(sessionId);
                     _sdkLogger?.Debug($"Session ID set: {sessionId}", "LogReporter");
+
+                    // 版本若已在建会话期间就绪（SetVersion 先于此回调），此处补发一次。
+                    if (!string.IsNullOrEmpty(_version))
+                    {
+                        StartCoroutine(_sessionManager.UpdateVersion(sessionId, _version));
+                    }
                 },
                 onError: (error) =>
                 {

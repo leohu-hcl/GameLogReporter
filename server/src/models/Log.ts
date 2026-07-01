@@ -25,7 +25,6 @@ export interface ILog extends Document {
   metadata?: Record<string, any>;
   tags?: string[];
   timestamp: Date;
-  clientVersion?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,9 +75,6 @@ const LogSchema = new Schema<ILog>(
       required: true,
       index: true,
       default: () => new Date()
-    },
-    clientVersion: {
-      type: String
     }
   },
   {

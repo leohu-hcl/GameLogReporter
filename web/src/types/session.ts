@@ -28,6 +28,7 @@ export interface Session {
   status: SessionStatus;
   gameId?: string;
   userId?: string;
+  version?: string;
   logCount?: number;
   errorCount?: number;
   warningCount?: number;

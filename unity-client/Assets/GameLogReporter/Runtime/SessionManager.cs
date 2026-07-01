@@ -118,6 +118,34 @@ namespace GameLogReporter
         }
         
         /// <summary>
+        /// 补写会话版本号：客户端真实版本异步就绪后回填到已建会话。
+        /// 失败静默忽略——版本仅用于展示，丢失不影响日志上报。
+        /// </summary>
+        public IEnumerator UpdateVersion(string sessionId, string version)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                yield break;
+            }
+
+            string url = $"{_apiUrl}/{sessionId}/version";
+            var body = new UpdateVersionRequest { version = version };
+
+            yield return _httpClient.Post<UpdateVersionRequest>(
+                url,
+                body,
+                (_) => _sdkLogger?.Debug($"Session version updated: {version}", "SessionManager"),
+                (error) => _sdkLogger?.Debug($"Failed to update session version: {error.message}", "SessionManager")
+            );
+        }
+
+        [Serializable]
+        private class UpdateVersionRequest
+        {
+            public string version;
+        }
+
+        /// <summary>
         /// 发送一次心跳，刷新服务端 lastSeen（保持设备活跃状态在线）。
         /// 失败静默忽略——丢一两次心跳由服务端活跃阈值容忍。
         /// </summary>

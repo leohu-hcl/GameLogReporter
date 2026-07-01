@@ -168,3 +168,25 @@ export async function heartbeat(req: Request, res: Response, next: NextFunction)
     next(error);
   }
 }
+
+/**
+ * 补写会话版本号：客户端真实版本（包版本/资源版本等）异步就绪后回填。
+ * 版本在会话创建时尚未加载（StreamingAssets/Addressables 晚于建会话），故单独上报。
+ * Unity 客户端调用，无需认证。
+ */
+export async function updateSessionVersion(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { sessionId } = req.params;
+    const { version } = req.body;
+
+    if (!sessionId) {
+      throw new AppError('Session ID is required', 400);
+    }
+
+    await Session.updateOne({ sessionId }, { version });
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+}

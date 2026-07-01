@@ -28,7 +28,6 @@ export interface Log {
   metadata?: Record<string, any>;
   tags?: string[];
   timestamp: string;
-  clientVersion?: string;
   createdAt: string;
   updatedAt: string;
 }
