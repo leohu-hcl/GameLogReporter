@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
 import { PageHeader } from '@/components/common/PageHeader';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { InfoCard } from '@/components/common/InfoCard';
 import { StatCard } from '@/components/common/StatCard';
 import { DataTable } from '@/components/common/DataTable';
@@ -141,6 +142,12 @@ export default function DeviceDetailPage() {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
+          <Breadcrumb
+            items={[
+              { label: '设备', href: '/devices' },
+              { label: device.deviceModel },
+            ]}
+          />
           <PageHeader
             title={device.deviceModel}
             description={`${new Date(device.firstSeen).toLocaleString('zh-CN')} 首次连接`}

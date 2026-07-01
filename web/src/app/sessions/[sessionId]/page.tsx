@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Layout } from '@/components/common/Layout';
 import { PageHeader } from '@/components/common/PageHeader';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { InfoCard } from '@/components/common/InfoCard';
 import { DataTable } from '@/components/common/DataTable';
 import { DistributionChart } from '@/components/dashboard/DistributionChart';
@@ -281,6 +282,13 @@ export default function SessionDetailPage() {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
+          <Breadcrumb
+            items={[
+              { label: '设备', href: '/devices' },
+              { label: device?.deviceModel || session.deviceId, href: `/devices/${session.deviceId}` },
+              { label: '会话详情' },
+            ]}
+          />
           <PageHeader
             title="会话详情"
             description={`${new Date(session.startTime).toLocaleString('zh-CN')}`}

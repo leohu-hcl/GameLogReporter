@@ -16,6 +16,8 @@ const ROUTE_LABELS: { match: string; label: string; code: string }[] = [
   { match: '/dashboard', label: '仪表板', code: 'OVERVIEW' },
   { match: '/logs', label: '日志', code: 'LOGS' },
   { match: '/devices', label: '设备', code: 'DEVICES' },
+  // 会话无顶级菜单，归属到设备（设备 → 会话 → 日志），与侧边栏高亮保持一致
+  { match: '/sessions', label: '设备', code: 'DEVICES' },
   { match: '/alerts', label: '告警', code: 'ALERTS' },
   { match: '/users', label: '用户管理', code: 'USERS' },
   { match: '/settings', label: '设置', code: 'CONFIG' },

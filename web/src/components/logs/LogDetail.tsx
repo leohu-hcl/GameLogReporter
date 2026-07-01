@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { PageHeader } from '@/components/common/PageHeader';
+import { Breadcrumb } from '@/components/common/Breadcrumb';
 import { InfoCard } from '@/components/common/InfoCard';
 import { ArrowLeft, Copy, Download, ChevronLeft } from 'lucide-react';
 import { LOG_LEVEL_LABELS, LOG_TYPE_LABELS } from '@/components/logs/LogsTable';
@@ -158,6 +159,15 @@ export function LogDetail({ logId }: LogDetailProps) {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { label: '日志', href: '/logs' },
+          ...(log.sessionId
+            ? [{ label: '所属会话', href: `/sessions/${log.sessionId}` }]
+            : []),
+          { label: '日志详情' },
+        ]}
+      />
       <PageHeader
         title="日志详情"
         description={new Date(log.timestamp).toLocaleString()}

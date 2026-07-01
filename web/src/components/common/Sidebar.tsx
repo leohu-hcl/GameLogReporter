@@ -31,7 +31,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   ];
 
   const isActive = (href: string) => {
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (pathname === href || pathname.startsWith(`${href}/`)) return true;
+    // 无顶级菜单项的子页面归属到其父项：会话属于设备（设备 → 会话 → 日志）。
+    if (href === '/devices' && pathname.startsWith('/sessions/')) return true;
+    return false;
   };
 
   return (
