@@ -165,9 +165,16 @@ export async function getLogs(query: GetLogsQuery): Promise<{
   }
 }
 
-export async function getLogById(id: string): Promise<ILog | null> {
+export async function getLogById(id: string): Promise<(ILog & { version?: string }) | null> {
   try {
-    return await Log.findById(id).lean();
+    const log = await Log.findById(id).lean();
+    if (!log) return null;
+
+    // 版本号存在会话上（非日志本身），查询单条日志时 join 进来供详情页展示。
+    const session = await Session.findOne({ sessionId: log.sessionId })
+      .select('version')
+      .lean();
+    return { ...log, version: session?.version };
   } catch (error) {
     logger.error('Error getting log by id:', error);
     throw error;

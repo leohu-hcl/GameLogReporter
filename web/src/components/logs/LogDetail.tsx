@@ -232,6 +232,12 @@ export function LogDetail({ logId }: LogDetailProps) {
                 label: '创建时间',
                 value: new Date(log.createdAt).toLocaleString(),
               },
+              ...(log.version
+                ? [{
+                    label: '客户端版本',
+                    value: <span className="font-mono text-sm break-all">{log.version}</span>,
+                  }]
+                : []),
             ]}
           />
 

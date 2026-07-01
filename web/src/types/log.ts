@@ -30,6 +30,7 @@ export interface Log {
   timestamp: string;
   createdAt: string;
   updatedAt: string;
+  version?: string; // 客户端版本，存于所属会话，后端查单条日志时 join 返回
 }
 
 export interface LogFilters {
