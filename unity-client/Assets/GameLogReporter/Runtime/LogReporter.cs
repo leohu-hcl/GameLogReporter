@@ -97,6 +97,11 @@ namespace GameLogReporter
         }
 
         /// <summary>
+        /// 当前会话 ID。会话建立前为 null/空。供外部（如调试面板）展示或关联使用。
+        /// </summary>
+        public static string SessionId => _instance?._logCollector?.GetSessionId();
+
+        /// <summary>
         /// 上报客户端真实版本号。版本内容由调用方自行拼接（如"包x.y.z / 资源abc"），
         /// 服务端按会话原样存储、Web 原样显示。
         /// 通常在版本异步就绪后（如读完 version.txt / 加载完资源版本配置）调用一次。
