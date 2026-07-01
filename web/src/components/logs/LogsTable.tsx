@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { LogDownloadDialog } from '@/components/logs/LogDownloadDialog';
+import { LogDetailContent } from '@/components/logs/LogDetailContent';
 import { format } from 'date-fns';
 import { useSettings } from '@/context/SettingsContext';
 
@@ -385,9 +386,17 @@ export function LogsTable({ initialFilters }: LogTableProps) {
     toast.success('会话ID已复制');
   };
 
-  const handleViewDetail = (log: Log) => {
+  const handleViewDetail = async (log: Log) => {
+    // 先用列表已有数据即时展开，再按 id 拉完整日志（含版本号，版本存于会话，仅单条查询 join）。
     setSelectedLog(log);
     setSheetOpen(true);
+    try {
+      const full = await logService.getLogDetail(log._id);
+      // 防串扰：期间用户可能已切换到别的日志
+      setSelectedLog((cur) => (cur?._id === log._id ? full : cur));
+    } catch {
+      // 拉取失败则保留列表数据，版本号缺省不显示
+    }
   };
 
   if (error) {
@@ -724,54 +733,7 @@ export function LogsTable({ initialFilters }: LogTableProps) {
 
           {selectedLog && (
             <div className="mt-4 space-y-4 overflow-y-auto flex-1 pr-4">
-              {/* 基本信息 */}
-              <div>
-                <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">基本信息</h3>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">日志ID</span>
-                    <p className="mt-1 break-all font-mono text-xs">{selectedLog.logId}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">会话ID</span>
-                    <p className="mt-1 break-all font-mono text-xs">{selectedLog.sessionId}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">日志类型</span>
-                    <p className="mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {LOG_TYPE_LABELS[selectedLog.logType] || selectedLog.logType}
-                      </Badge>
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">日志级别</span>
-                    <p className="mt-1">
-                      <Badge className={`${LOG_LEVEL_COLORS[selectedLog.level] || 'bg-muted'} border text-xs`}>
-                        {LOG_LEVEL_LABELS[selectedLog.level] || selectedLog.level}
-                      </Badge>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 消息 */}
-              <div>
-                <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">消息</h3>
-                <p className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted/50 p-3 text-xs">
-                  {selectedLog.message}
-                </p>
-              </div>
-
-              {/* 堆栈跟踪 */}
-              {selectedLog.stackTrace && (
-                <div>
-                  <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">堆栈跟踪</h3>
-                  <pre className="max-h-60 overflow-x-auto overflow-y-auto rounded-md border border-border bg-muted/50 p-3 text-xs text-muted-foreground">
-                    {selectedLog.stackTrace}
-                  </pre>
-                </div>
-              )}
+              <LogDetailContent log={selectedLog} />
 
               {/* 操作按钮 */}
               <div className="sticky bottom-0 flex gap-2 border-t border-border bg-card pt-4">

@@ -13,14 +13,17 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { useSessionWithLogs } from '@/hooks/useSessionQueries';
 import { sessionService } from '@/api/sessions';
+import { logService } from '@/api/logs';
 import { Log } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { ChevronLeft, Copy, Download, ExternalLink, FileText } from 'lucide-react';
+import { ChevronLeft, Copy, Download, Eye, FileText } from 'lucide-react';
 import { LogDownloadDialog } from '@/components/logs/LogDownloadDialog';
+import { LogDetailContent } from '@/components/logs/LogDetailContent';
 import { useSettings } from '@/context/SettingsContext';
 
 /**
@@ -36,6 +39,20 @@ export default function SessionDetailPage() {
   const [page, setPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
+  const [logDialogOpen, setLogDialogOpen] = useState(false);
+
+  const handleViewLog = async (log: Log) => {
+    // 与日志列表页一致：弹窗就地查看，按 id 拉完整日志（含版本号）。
+    setSelectedLog(log);
+    setLogDialogOpen(true);
+    try {
+      const full = await logService.getLogDetail(log._id);
+      setSelectedLog((cur) => (cur?._id === log._id ? full : cur));
+    } catch {
+      // 拉取失败保留列表数据
+    }
+  };
 
   const { data, isLoading, error } = useSessionWithLogs(sessionId, page, pageSize);
 
@@ -488,10 +505,10 @@ export default function SessionDetailPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push(`/logs/${log._id}`)}
+                    onClick={() => handleViewLog(log)}
                     title="查看详情"
                   >
-                    <ExternalLink className="h-4 w-4" />
+                    <Eye className="h-4 w-4" />
                   </Button>
                 ),
               },
@@ -518,6 +535,40 @@ export default function SessionDetailPage() {
             logCount={data?.pagination?.total || 0}
             description={`导出该会话的全部日志（共${data?.pagination?.total || 0}条）`}
           />
+
+          {/* 日志快速查看弹窗（与日志列表页一致） */}
+          <Dialog open={logDialogOpen} onOpenChange={setLogDialogOpen}>
+            <DialogContent className="!w-[90vw] !max-w-5xl !max-h-[85vh] flex flex-col !p-6 !gap-4 overflow-hidden">
+              <DialogHeader>
+                <DialogTitle>日志详情</DialogTitle>
+                <DialogDescription>
+                  {selectedLog && new Date(selectedLog.createdAt).toLocaleString('zh-CN')}
+                </DialogDescription>
+              </DialogHeader>
+
+              {selectedLog && (
+                <div className="mt-4 space-y-4 overflow-y-auto flex-1 pr-4">
+                  <LogDetailContent log={selectedLog} />
+
+                  <div className="sticky bottom-0 flex gap-2 border-t border-border bg-card pt-4">
+                    <Button
+                      onClick={() => router.push(`/logs/${selectedLog._id}`)}
+                      className="flex-1 h-8 text-sm"
+                    >
+                      查看完整详情
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setLogDialogOpen(false)}
+                      className="flex-1 h-8 text-sm"
+                    >
+                      关闭
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </Layout>
     </ProtectedRoute>
